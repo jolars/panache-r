@@ -1,0 +1,9 @@
+Name: Format with Panache
+Description: Format the active Markdown, Quarto, or R Markdown document.
+Binding: format_document_addin
+Interactive: false
+
+Name: Format Selection with Panache
+Description: Format the selected block range with Panache.
+Binding: format_selection_addin
+Interactive: false

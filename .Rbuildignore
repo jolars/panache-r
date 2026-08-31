@@ -1,0 +1,12 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^\.github$
+^\.gitignore$
+^README\.Rmd$
+^cran-comments\.md$
+^Taskfile\.yml$
+^src/\.cargo$
+^src/rust/target$
+^src/rust/vendor$
+^src/Makevars$
+^src/Makevars\.win$

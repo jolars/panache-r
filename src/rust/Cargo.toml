@@ -1,0 +1,19 @@
+[package]
+name = "panache-r"
+publish = false
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.89.0"
+
+[lib]
+crate-type = ["staticlib"]
+name = "panache"
+
+[dependencies]
+extendr-api = "0.9"
+panache-formatter = "=0.22.0"
+panache-parser = "=0.28.0"
+
+[profile.release]
+lto = true
+codegen-units = 1

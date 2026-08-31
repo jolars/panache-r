@@ -1,0 +1,36 @@
+version: "3"
+
+tasks:
+  vendor:
+    desc: Vendor Rust dependencies for an offline CRAN build
+    cmds:
+      - rm -rf src/rust/vendor src/rust/vendor.tar.xz
+      - cargo generate-lockfile --manifest-path src/rust/Cargo.toml
+      - cargo vendor --locked --manifest-path src/rust/Cargo.toml src/rust/vendor
+      - tar -cJ --no-xattrs -f src/rust/vendor.tar.xz -C src/rust vendor
+      - rm -rf src/rust/vendor
+
+  build:
+    desc: Build the R source package
+    cmds:
+      - R CMD build --no-manual .
+
+  install:
+    desc: Install the R package
+    cmds:
+      - R CMD INSTALL --preclean --no-multiarch --with-keep.source .
+
+  check:
+    desc: Check the built R source package
+    deps: [build]
+    cmds:
+      - _R_CHECK_FORCE_SUGGESTS_=false R CMD check --no-manual panache_*.tar.gz
+
+  test-rust:
+    desc: Test the Rust bridge
+    cmds:
+      - cargo test --manifest-path src/rust/Cargo.toml
+
+  clean:
+    cmds:
+      - rm -rf src/*.o src/*.so src/rust/target src/.cargo src/rust/vendor panache.Rcheck

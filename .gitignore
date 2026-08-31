@@ -1,0 +1,13 @@
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+/*.tar.gz
+/*.Rcheck/
+/src/.cargo/
+/src/Makevars
+/src/Makevars.win
+/src/*.o
+/src/*.so
+/src/rust/target/
+/src/rust/vendor/
