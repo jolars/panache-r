@@ -29,7 +29,6 @@
             covr
             devtools
             knitr
-            lattice
             rextendr
             rmarkdown
             spelling

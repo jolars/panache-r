@@ -10,3 +10,10 @@
 ^src/rust/vendor$
 ^src/Makevars$
 ^src/Makevars\.win$
+^\.devenv$
+^devenv\.lock$
+^devenv\.nix$
+^devenv\.yaml$
+^versionary\.jsonc$
+^\.versionary-manifest\.json$
+^\.versionary-manifest\.json\.d$
