@@ -1,6 +1,27 @@
 version: "3"
 
 tasks:
+  default:
+    deps: [install]
+
+  document:
+    desc: Regenerate roxygen documentation and NAMESPACE
+    cmds:
+      - Rscript -e 'devtools::document(roclets = c("rd", "collate", "namespace"))'
+
+  extendr-document:
+    desc: Regenerate extendr wrappers and package documentation
+    cmds:
+      - task: extendr-wrappers
+      - Rscript -e 'devtools::document()'
+
+  extendr-wrappers:
+    desc: Regenerate extendr R wrappers
+    internal: true
+    dir: src
+    cmds:
+      - cargo run --locked --bin document --manifest-path=rust/Cargo.toml --target-dir=rust/target
+
   vendor:
     desc: Vendor Rust dependencies for an offline CRAN build
     cmds:
@@ -12,6 +33,7 @@ tasks:
 
   build:
     desc: Build the R source package
+    deps: [document]
     cmds:
       - R CMD build --no-manual .
 
@@ -28,9 +50,30 @@ tasks:
 
   test-rust:
     desc: Test the Rust bridge
+    dir: src/rust
     cmds:
-      - cargo test --manifest-path src/rust/Cargo.toml
+      - cargo test --locked
+
+  rust-fmt:
+    desc: Check Rust formatting
+    dir: src/rust
+    cmds:
+      - cargo fmt -- --check
+
+  rust-clippy:
+    desc: Run Rust lints
+    dir: src/rust
+    cmds:
+      - cargo clippy --locked --all-targets -- -D warnings
+
+  test:
+    desc: Run testthat tests
+    cmds:
+      - Rscript -e 'devtools::test()'
 
   clean:
+    desc: Remove native build artifacts and unpacked vendor state
     cmds:
-      - rm -rf src/*.o src/*.so src/rust/target src/.cargo src/rust/vendor panache.Rcheck
+      - >-
+        rm -rf src/*.o src/*.so src/*.dll src/symbols.rds src/rust/target
+        src/rust/vendor src/.cargo src/vendor panache.Rcheck

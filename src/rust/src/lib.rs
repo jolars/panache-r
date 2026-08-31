@@ -42,6 +42,9 @@ fn rust_format_document(
     config.formatter_extensions = FormatterExtensions::for_flavor(flavor);
     config.line_width = usize::try_from(line_width)
         .map_err(|_| extendr_api::Error::from("line width must be positive"))?;
+    if config.line_width == 0 {
+        return Err("line width must be positive".into());
+    }
     config.wrap = Some(parse_wrap(wrap)?);
 
     let line_range = match (start_line, end_line) {
@@ -50,6 +53,9 @@ fn rust_format_document(
                 .map_err(|_| extendr_api::Error::from("range start must be positive"))?;
             let end = usize::try_from(end)
                 .map_err(|_| extendr_api::Error::from("range end must be positive"))?;
+            if start == 0 || end == 0 || start > end {
+                return Err("range must contain positive, increasing line numbers".into());
+            }
             Some((start, end))
         }
         (Nullable::Null, Nullable::Null) => None,
@@ -81,9 +87,11 @@ mod tests {
     #[test]
     fn formatter_range_replacement_preserves_unselected_blocks() {
         let text = "first first first first first\n\nsecond second second second second\n";
-        let mut config = Config::default();
-        config.line_width = 20;
-        config.wrap = Some(WrapMode::Reflow);
+        let config = Config {
+            line_width: 20,
+            wrap: Some(WrapMode::Reflow),
+            ..Config::default()
+        };
         let tree = panache_parser::parse(text, Some(config.parser_options()));
         let (start, end) =
             panache_parser::range_utils::expand_line_range_to_blocks(&tree, text, 3, 3).unwrap();

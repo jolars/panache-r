@@ -31,6 +31,7 @@
             knitr
             rextendr
             rmarkdown
+            roxygen2
             spelling
             testthat
             urlchecker

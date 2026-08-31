@@ -20,7 +20,8 @@ are available. Use the Task targets as the canonical workflows:
 - `task build` creates the R source tarball.
 - `task check` builds and runs `R CMD check --no-manual`.
 - `task test-rust` runs the Rust bridge's unit tests.
-- `Rscript -e 'testthat::test_local()'` runs the R tests during iteration.
+- `task test` runs the R tests during iteration.
+- `task rust-fmt` and `task rust-clippy` enforce Rust formatting and lints.
 - `task vendor` refreshes the compressed Rust dependencies used for offline CRAN
   builds; commit the resulting lockfile and archive together.
 
@@ -31,8 +32,7 @@ and roxygen2 comments for exported functions. Keep generated `man/*.Rd`,
 `NAMESPACE`, and `R/extendr-wrappers.R` synchronized through their generators
 rather than hand-editing them. Follow `rustfmt` defaults in Rust, use
 `snake_case` for functions, and keep the package compatible with Rust 1.89. Run
-`cargo fmt --manifest-path src/rust/Cargo.toml --check` before submitting Rust
-changes.
+the Rust formatting and lint tasks before submitting Rust changes.
 
 ## Testing Guidelines
 

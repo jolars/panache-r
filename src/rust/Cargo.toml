@@ -6,13 +6,18 @@ edition = "2024"
 rust-version = "1.89.0"
 
 [lib]
-crate-type = ["staticlib"]
+crate-type = ["rlib", "staticlib"]
 name = "panache"
 
+[[bin]]
+name = "document"
+path = "document.rs"
+bench = false
+
 [dependencies]
-extendr-api = "0.9"
+extendr-api = { version = "0.9", features = ["result_condition"] }
 panache-formatter = "=0.22.0"
-panache-parser = "=0.28.0"
+panache-parser = "0.28.0"
 
 [profile.release]
 lto = true

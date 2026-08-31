@@ -4,7 +4,8 @@
 #' Use `range` to restrict formatting to a one-indexed, inclusive line range;
 #' Panache formats blocks overlapping that range.
 #'
-#' @param text A character scalar containing the document.
+#' @param text A character scalar containing a valid UTF-8 document. Strings
+#'   with a declared encoding are converted to UTF-8.
 #' @param flavor The Markdown flavor. One of `"pandoc"`, `"quarto"`,
 #'   `"rmarkdown"`, `"gfm"`, `"commonmark"`, `"multimarkdown"`, `"mdsvex"`, or
 #'   `"myst"`.
@@ -26,7 +27,7 @@ panache_format <- function(
   wrap = "reflow",
   range = NULL
 ) {
-  text <- scalar_character(text, "text")
+  text <- utf8_character(text, "text")
   flavor <- match.arg(
     flavor,
     c(
@@ -42,28 +43,21 @@ panache_format <- function(
   )
   wrap <- match.arg(wrap, c("reflow", "sentence", "semantic", "preserve"))
 
-  if (
-    length(line_width) != 1L ||
-      !is.numeric(line_width) ||
-      is.na(line_width) ||
-      !is.finite(line_width) ||
-      line_width < 1 ||
-      line_width > .Machine$integer.max
-  ) {
-    stop("`line_width` must be one positive integer.", call. = FALSE)
-  }
-  line_width <- as.integer(line_width)
+  line_width <- positive_integer(line_width, "line_width")
 
   if (is.null(range)) {
     start_line <- NULL
     end_line <- NULL
   } else {
-    if (
-      length(range) != 2L ||
-        anyNA(range) ||
-        any(range < 1) ||
-        range[[1L]] > range[[2L]]
-    ) {
+    valid_range <- is.numeric(range) &&
+      length(range) == 2L &&
+      !anyNA(range) &&
+      all(is.finite(range)) &&
+      all(range == trunc(range)) &&
+      all(range >= 1) &&
+      all(range <= .Machine$integer.max) &&
+      range[[1L]] <= range[[2L]]
+    if (!valid_range) {
       stop(
         "`range` must contain two positive, increasing line numbers.",
         call. = FALSE
@@ -73,14 +67,16 @@ panache_format <- function(
     end_line <- as.integer(range[[2L]])
   }
 
-  rust_format_document(text, flavor, line_width, wrap, start_line, end_line)
+  unwrap_extendr_result(
+    rust_format_document(text, flavor, line_width, wrap, start_line, end_line)
+  )
 }
 
 #' Format a file with Panache
 #'
 #' The file is replaced only when formatting changes its contents.
 #'
-#' @param path Path to a Markdown, Quarto, or R Markdown document.
+#' @param path Path to a UTF-8 Markdown, Quarto, or R Markdown document.
 #' @inheritParams panache_format
 #' @param flavor The Markdown flavor, or `NULL` to infer it from `path`.
 #'
@@ -102,6 +98,7 @@ panache_format_file <- function(
   }
 
   input <- rawToChar(readBin(path, what = "raw", n = file.info(path)$size))
+  input <- utf8_character(input, "file contents")
   output <- panache_format(input, flavor, line_width, wrap, range)
   changed <- !identical(input, output)
 
@@ -123,6 +120,40 @@ scalar_character <- function(x, arg) {
     stop("`", arg, "` must be one non-missing character string.", call. = FALSE)
   }
   x
+}
+
+utf8_character <- function(x, arg) {
+  x <- scalar_character(x, arg)
+  if (identical(Encoding(x), "bytes")) {
+    stop("`", arg, "` must contain valid UTF-8.", call. = FALSE)
+  }
+
+  x <- enc2utf8(x)
+  if (!validUTF8(x)) {
+    stop("`", arg, "` must contain valid UTF-8.", call. = FALSE)
+  }
+  x
+}
+
+positive_integer <- function(x, arg) {
+  valid <- is.numeric(x) &&
+    length(x) == 1L &&
+    !is.na(x) &&
+    is.finite(x) &&
+    x == trunc(x) &&
+    x >= 1 &&
+    x <= .Machine$integer.max
+  if (!valid) {
+    stop("`", arg, "` must be one positive integer.", call. = FALSE)
+  }
+  as.integer(x)
+}
+
+unwrap_extendr_result <- function(value) {
+  if (inherits(value, "extendr_error")) {
+    stop(as.character(value$value)[[1L]], call. = FALSE)
+  }
+  value
 }
 
 flavor_from_path <- function(path) {
