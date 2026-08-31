@@ -17,3 +17,5 @@
 ^versionary\.jsonc$
 ^\.versionary-manifest\.json$
 ^\.versionary-manifest\.json\.d$
+^AGENTS\.md$
+^CLAUDE\.md$
