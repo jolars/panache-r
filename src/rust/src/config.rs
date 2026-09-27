@@ -1,5 +1,251 @@
 use extendr_api::prelude::*;
 use std::collections::HashMap;
+use std::path::Path;
+
+pub fn load_config(
+    config_path: Option<&str>,
+    document_path: Option<&str>,
+    flavor: Option<panache_engine::config::Flavor>,
+    isolated: bool,
+    overrides: toml::Table,
+) -> std::result::Result<(panache_engine::config::Config, toml::Table), String> {
+    use panache_engine::config;
+    let document = document_path.map(Path::new);
+    let start_dir = document.and_then(Path::parent).unwrap_or(Path::new("."));
+    let (base, source, chain) = if isolated {
+        (
+            config::Config::default(),
+            config::ConfigSource::None,
+            vec![],
+        )
+    } else {
+        config::load_with_chain(config_path.map(Path::new), start_dir, document, flavor)
+            .map_err(|error| error.to_string())?
+    };
+
+    // The host loader keeps raw tables private. Retain declarations from its
+    // validated chain so overrides can reuse formatter definitions and empty
+    // chains before the host resolves presets and flavor-dependent defaults.
+    let mut table = toml::Table::new();
+    for path in chain.iter().rev() {
+        let source = std::fs::read_to_string(path).map_err(|error| error.to_string())?;
+        let inherited = toml::from_str(&source).map_err(|error| error.to_string())?;
+        merge_tables(&mut table, inherited, true);
+    }
+    let extension_overrides = overrides.get("extensions").cloned();
+    if let Some(extensions) = &extension_overrides {
+        extension_flags(extensions, base.flavor)?;
+    }
+    let detect_flavor = isolated
+        || overrides
+            .get("flavors")
+            .is_some_and(|value| value.as_table().is_some_and(|table| !table.is_empty()));
+    merge_tables(&mut table, overrides, true);
+    let mut config = deserialize_config(&table)?;
+    let resolved_flavor = flavor.unwrap_or_else(|| {
+        if !detect_flavor {
+            return base.flavor;
+        }
+        document
+            .and_then(|path| detect_overridden_flavor(path, &source, &config))
+            .unwrap_or(config.flavor)
+    });
+    table.insert(
+        "flavor".into(),
+        toml::Value::try_from(resolved_flavor).map_err(|error| error.to_string())?,
+    );
+    config = deserialize_config(&table)?;
+    if let Some(extensions) = extension_overrides {
+        // Invocation flags override even a more specific extension setting in
+        // a file, matching the CLI's final application of `--option` flags.
+        let flags = extension_flags(&extensions, resolved_flavor)?;
+        config.extensions.apply_overrides(flags.clone());
+        config.formatter_extensions.apply_overrides(flags);
+    }
+    validate_formatters(&table, &config)?;
+    Ok((config, table))
+}
+
+fn detect_overridden_flavor(
+    document: &Path,
+    source: &panache_engine::config::ConfigSource,
+    config: &panache_engine::config::Config,
+) -> Option<panache_engine::config::Flavor> {
+    use panache_engine::config::{Config, detect_flavor_from_path};
+    let absolute = std::path::absolute(document).ok()?;
+    // Keep the same path representation on both sides; canonicalize() adds a
+    // verbatim prefix on Windows that synthetic document paths do not have.
+    let anchor = source.project_anchor().and_then(|path| {
+        if path.as_os_str().is_empty() {
+            std::path::absolute(".").ok()
+        } else {
+            std::path::absolute(path).ok()
+        }
+    });
+    let candidates: Vec<_> = [
+        Some(document),
+        Some(absolute.as_path()),
+        anchor
+            .as_ref()
+            .and_then(|anchor| absolute.strip_prefix(anchor).ok()),
+        document.file_name().map(Path::new),
+    ]
+    .into_iter()
+    .flatten()
+    .map(|path| path.to_string_lossy().replace('\\', "/"))
+    .collect();
+
+    // The public detector lacks the config anchor. Match the host's relative,
+    // absolute, and basename candidates and specificity before delegating its
+    // special filename/extension rules (for example, .qmd still means Quarto).
+    let mut best = None;
+    for (pattern, flavor) in &config.flavor_overrides {
+        let Ok(glob) = globset::GlobBuilder::new(pattern)
+            .literal_separator(true)
+            .backslash_escape(true)
+            .build()
+        else {
+            continue;
+        };
+        let matcher = glob.compile_matcher();
+        if !candidates.iter().any(|path| matcher.is_match(path)) {
+            continue;
+        }
+        let wildcards = pattern
+            .chars()
+            .filter(|c| matches!(c, '*' | '?' | '[' | ']' | '{' | '}'))
+            .count();
+        let score = (
+            pattern.chars().count() - wildcards,
+            usize::MAX - wildcards,
+            pattern.matches('/').count(),
+        );
+        if best.is_none_or(|(previous, _)| score > previous) {
+            best = Some((score, *flavor));
+        }
+    }
+    let detection = Config {
+        flavor: best.map_or(config.flavor, |(_, flavor)| flavor),
+        ..Config::default()
+    };
+    detect_flavor_from_path(document, &detection)
+}
+
+fn deserialize_config(
+    table: &toml::Table,
+) -> std::result::Result<panache_engine::config::Config, String> {
+    toml::Value::Table(table.clone())
+        .try_into()
+        .map_err(|error| format!("invalid configuration: {error}"))
+}
+
+fn extension_flags(
+    value: &toml::Value,
+    flavor: panache_engine::config::Flavor,
+) -> std::result::Result<HashMap<String, bool>, String> {
+    use panache_engine::config::{Extensions, Flavor, FormatterExtensions};
+    fn flag(name: &str, value: &toml::Value) -> std::result::Result<bool, String> {
+        if !Extensions::is_known_name(name) && !FormatterExtensions::is_known_name(name) {
+            return Err(format!("unknown extension `{name}`"));
+        }
+        value
+            .as_bool()
+            .ok_or_else(|| format!("extension `{name}` must be TRUE or FALSE"))
+    }
+    let table = value
+        .as_table()
+        .ok_or("`extensions` must be a named list")?;
+    let mut flags = HashMap::new();
+    let mut specific = HashMap::new();
+    for (name, value) in table {
+        if let Some(nested) = value.as_table() {
+            let selected: Flavor = toml::Value::String(name.clone())
+                .try_into()
+                .map_err(|_| format!("unknown extension flavor `{name}`"))?;
+            for (key, value) in nested {
+                let enabled = flag(key, value)?;
+                if selected == flavor {
+                    specific.insert(key.clone(), enabled);
+                }
+            }
+        } else {
+            flags.insert(name.clone(), flag(name, value)?);
+        }
+    }
+    flags.extend(specific);
+    Ok(flags)
+}
+
+fn validate_formatters(
+    table: &toml::Table,
+    config: &panache_engine::config::Config,
+) -> std::result::Result<(), String> {
+    if let Some(formatters) = table.get("formatters").and_then(toml::Value::as_table) {
+        for (name, value) in formatters {
+            if value.is_table() {
+                value
+                    .clone()
+                    .try_into::<panache_engine::config::FormatterDefinition>()
+                    .map_err(|error| format!("invalid formatter `{name}`: {error}"))?;
+            } else if (value.is_str() || value.as_array().is_some_and(|items| !items.is_empty()))
+                && !config.formatters.contains_key(name)
+            {
+                return Err(format!("could not resolve formatters for `{name}`"));
+            }
+        }
+    }
+    Ok(())
+}
+
+// Keep inheritance aligned with the host loader's private merge: tables merge,
+// ordinary arrays replace, extend-* arrays accumulate, and flavors merge by
+// path pattern rather than by flavor name.
+fn merge_tables(base: &mut toml::Table, overrides: toml::Table, root: bool) {
+    for (key, value) in overrides {
+        match (base.get_mut(&key), value) {
+            (Some(toml::Value::Table(base)), toml::Value::Table(overrides)) => {
+                if root && key == "flavors" {
+                    merge_flavors(base, overrides);
+                } else {
+                    merge_tables(base, overrides, false);
+                }
+            }
+            (Some(toml::Value::Array(base)), toml::Value::Array(overrides))
+                if root && matches!(key.as_str(), "extend-include" | "extend-exclude") =>
+            {
+                base.extend(overrides);
+            }
+            (_, value) => {
+                base.insert(key, value);
+            }
+        }
+    }
+}
+
+fn merge_flavors(base: &mut toml::Table, overrides: toml::Table) {
+    let reassigned: std::collections::HashSet<_> = overrides
+        .values()
+        .filter_map(toml::Value::as_array)
+        .flatten()
+        .filter_map(toml::Value::as_str)
+        .collect();
+    for patterns in base
+        .iter_mut()
+        .filter_map(|(_, value)| value.as_array_mut())
+    {
+        patterns.retain(|pattern| pattern.as_str().is_none_or(|p| !reassigned.contains(p)));
+    }
+    for (key, value) in overrides {
+        match (base.get_mut(&key), value) {
+            (Some(toml::Value::Array(base)), toml::Value::Array(overrides)) => {
+                base.extend(overrides)
+            }
+            (_, value) => {
+                base.insert(key, value);
+            }
+        }
+    }
+}
 
 pub fn list_to_table(list: &List) -> std::result::Result<toml::Table, String> {
     list.iter()
@@ -161,5 +407,77 @@ pub fn formatter_config(config: &panache_engine::config::Config) -> panache_form
         external_max_parallel: config.external_max_parallel,
         parser: config.parser,
         math: config.math,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn overrides_preserve_siblings_and_replace_arrays_including_empty_chains() {
+        let mut base: toml::Table = toml::from_str(
+            "[format]\nline-width = 20\nwrap = 'sentence'\n\
+             [formatters]\nr = ['first', 'second']\npython = 'first'\n\
+             [formatters.first]\ncmd = 'tool'\nargs = ['old']",
+        )
+        .unwrap();
+        let overrides = toml::from_str(
+            "[format]\nline-width = 100\n[formatters]\nr = []\n\
+             [formatters.first]\nargs = ['new']",
+        )
+        .unwrap();
+        merge_tables(&mut base, overrides, true);
+        assert_eq!(base["format"]["line-width"].as_integer(), Some(100));
+        assert_eq!(base["format"]["wrap"].as_str(), Some("sentence"));
+        assert!(base["formatters"]["r"].as_array().unwrap().is_empty());
+        assert_eq!(base["formatters"]["python"].as_str(), Some("first"));
+        assert_eq!(base["formatters"]["first"]["cmd"].as_str(), Some("tool"));
+        assert_eq!(base["formatters"]["first"]["args"][0].as_str(), Some("new"));
+    }
+
+    #[test]
+    fn flavor_patterns_accumulate_and_can_be_reassigned() {
+        let mut base = toml::from_str("[flavors]\ngfm = ['docs/*.md', 'README.md']").unwrap();
+        let overrides =
+            toml::from_str("[flavors]\ncommonmark = ['README.md']\ngfm = ['notes/*.md']").unwrap();
+        merge_tables(&mut base, overrides, true);
+        let config = deserialize_config(&base).unwrap();
+        assert_eq!(
+            config.flavor_overrides["README.md"],
+            panache_engine::config::Flavor::CommonMark
+        );
+        assert_eq!(
+            config.flavor_overrides["docs/*.md"],
+            panache_engine::config::Flavor::Gfm
+        );
+        assert_eq!(
+            config.flavor_overrides["notes/*.md"],
+            panache_engine::config::Flavor::Gfm
+        );
+    }
+
+    #[test]
+    fn isolated_overrides_resolve_flavor_and_validate_extensions() {
+        let overrides =
+            toml::from_str("[format]\nline-width = 42\n[extensions]\nsmart = false").unwrap();
+        let (config, _) = load_config(
+            Some("missing.toml"),
+            Some("document.qmd"),
+            None,
+            true,
+            overrides,
+        )
+        .unwrap();
+        assert_eq!(config.flavor, panache_engine::config::Flavor::Quarto);
+        assert_eq!(config.line_width, 42);
+        assert!(!config.formatter_extensions.smart);
+        for source in [
+            "[extensions]\ntypo = true",
+            "[extensions]\nsmart = 'false'",
+            "[extensions.quarto]\ntypo = true",
+        ] {
+            assert!(load_config(None, None, None, true, toml::from_str(source).unwrap()).is_err());
+        }
     }
 }

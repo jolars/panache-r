@@ -9,12 +9,11 @@
 #' If arity cannot format a chunk, a warning is issued and its code is
 #' preserved.
 #'
-#' Use `config = list(formatters = list(r = "arity"))` to select the arity CLI,
-#' replace `"arity"` with `"air"` to select Air, or with `character()` to leave
-#' R code alone. Custom commands and other languages use the same configuration
-#' as the Panache CLI. External formatters must be installed separately. If a
-#' command is unavailable or a formatter chain fails, the original code is
-#' preserved.
+#' Use `formatters = list(r = "arity")` to select the arity CLI, replace
+#' `"arity"` with `"air"` to select Air, or with `character()` to leave R code
+#' alone. Custom commands and other languages use the same configuration as the
+#' Panache CLI. External formatters must be installed separately. If a command
+#' is unavailable or a formatter chain fails, the original code is preserved.
 #'
 #' @param text A character scalar containing a valid UTF-8 document. Strings
 #'   with a declared encoding are converted to UTF-8.
@@ -29,17 +28,53 @@
 #'   (`"reflow"` by default).
 #' @param range `NULL`, or an integer vector containing the first and last lines
 #'   to format.
-#' @param config A named list of Panache options, a character scalar giving a
-#'   TOML configuration path, `NULL` to discover a file, or `FALSE` to use only
-#'   defaults. Lists mirror the TOML sections, for example
-#'   `list(format = list(line_width = 100), formatters = list(r = "air"))`.
-#'   Option names accept underscores or hyphens. `line_width`, `line_ending`,
-#'   and `wrap` can also appear directly in the list. Explicit `flavor`,
-#'   `line_width`, and `wrap` arguments override configuration values. Lists do
-#'   not discover or inherit files; `list()` uses defaults. TOML paths support
-#'   `extend`. Discovery follows the Panache CLI: the nearest project file, then
-#'   `PANACHE_CONFIG`, then the user configuration. The default arity R
-#'   interface uses the resolved line width, capped at 1000 columns.
+#' @param config A character scalar giving a TOML configuration path, or `NULL`
+#'   to discover configuration. Discovery uses the nearest project file, then
+#'   `PANACHE_CONFIG`, then the user configuration. Files can inherit settings
+#'   through `extend`. Lists and logical values are not accepted.
+#' @param isolated Whether to ignore all configuration files, including an
+#'   explicit `config` path. Named overrides and path-based flavor detection
+#'   still apply. Defaults to `FALSE`.
+#' @param line_ending Output line endings: `"auto"`, `"lf"`, or `"crlf"`.
+#'   `"auto"` preserves the first source line ending's style.
+#' @param math Math formatting: `"reflow"`, `"normalize"`, or `"verbatim"`.
+#' @param math_indent Nonnegative indentation width for display math.
+#' @param math_delimiter_style Math delimiters: `"preserve"`, `"dollars"`, or
+#'   `"backslash"`.
+#' @param math_signatures Named list of TeX command signatures, without leading
+#'   backslashes in command names. Each signature is a list of argument
+#'   definitions, for example `list(custom = list(list(kind = "brace", domain =
+#'   "text")))`.
+#' @param table_indent Table indentation from 0 through 3 spaces.
+#' @param tab_stops Tab handling: `"normalize"` or `"preserve"`.
+#' @param tab_width Positive tab width used when normalizing tabs.
+#' @param horizontal_rule_style Horizontal rules: `"line-width"` or `"compact"`.
+#' @param lang Fallback document language for sentence wrapping, such as `"en"`.
+#' @param no_break_abbreviations Character vector of additional abbreviations
+#'   for sentence wrapping, or a named list of vectors keyed by language, with
+#'   an optional `default` entry.
+#' @param formatters Named list of language mappings and formatter definitions,
+#'   corresponding to `[formatters]` in TOML. Use `list(r = character())` to
+#'   preserve R code. Definitions can refer to presets or names from the loaded
+#'   configuration. The default arity R interface uses the resolved line width,
+#'   capped at 1000 columns.
+#' @param extensions Named list of extension flags, optionally grouped by
+#'   flavor, corresponding to `[extensions]` in TOML.
+#' @param compat Named list of compatibility targets, corresponding to
+#'   `[compat]` in TOML, for example `list(pandoc = "3.7")`.
+#' @param flavors Named list of filename-pattern vectors keyed by flavor,
+#'   corresponding to `[flavors]` in TOML. Patterns merge by path pattern, as
+#'   with `extend`; assigning a pattern to a new flavor replaces its old
+#'   mapping.
+#'
+#' @details
+#' Formatting options are named arguments corresponding to settings under
+#' `[format]` in TOML. `NULL` inherits the configuration value or engine
+#' default. Explicit arguments override configuration values. Grouped arguments
+#' merge supplied entries, preserving unspecified settings; arrays replace
+#' inherited arrays, except for the pattern-based `flavors` merge. Empty grouped
+#' lists make no changes. List option names accept underscores or hyphens.
+#'
 #' @param path Optional document path used to detect the flavor and discover
 #'   configuration. If `NULL`, discovery starts in the working directory. The
 #'   file is not read.
@@ -49,7 +84,7 @@
 #'
 #' @examples
 #' panache_format("# Heading\n\nSome text.\n", flavor = "quarto")
-#' panache_format("A short paragraph.\n", config = list(line_width = 60))
+#' panache_format("A short paragraph.\n", line_width = 60, isolated = TRUE)
 panache_format <- function(
   text,
   flavor = NULL,
@@ -57,7 +92,23 @@ panache_format <- function(
   wrap = NULL,
   range = NULL,
   config = NULL,
-  path = NULL
+  path = NULL,
+  line_ending = NULL,
+  math = NULL,
+  math_indent = NULL,
+  math_delimiter_style = NULL,
+  math_signatures = NULL,
+  table_indent = NULL,
+  tab_stops = NULL,
+  tab_width = NULL,
+  horizontal_rule_style = NULL,
+  lang = NULL,
+  no_break_abbreviations = NULL,
+  formatters = NULL,
+  extensions = NULL,
+  compat = NULL,
+  flavors = NULL,
+  isolated = FALSE
 ) {
   text <- utf8_character(text, "text")
   if (!is.null(flavor)) {
@@ -75,14 +126,30 @@ panache_format <- function(
       )
     )
   }
-  if (!is.null(wrap)) {
-    wrap <- match.arg(wrap, c("reflow", "sentence", "semantic", "preserve"))
-  }
-
-  if (!is.null(line_width)) {
-    line_width <- positive_integer(line_width, "line_width")
-  }
-  config <- normalize_config(config)
+  config <- normalize_config_path(config)
+  isolated <- scalar_flag(isolated, "isolated")
+  overrides <- list(
+    format = normalize_format_options(list(
+      line_width = line_width,
+      wrap = wrap,
+      line_ending = line_ending,
+      math = math,
+      math_indent = math_indent,
+      math_delimiter_style = math_delimiter_style,
+      math_signatures = math_signatures,
+      table_indent = table_indent,
+      tab_stops = tab_stops,
+      tab_width = tab_width,
+      horizontal_rule_style = horizontal_rule_style,
+      lang = lang,
+      no_break_abbreviations = no_break_abbreviations
+    )),
+    formatters = normalize_section(formatters, "formatters"),
+    extensions = normalize_section(extensions, "extensions"),
+    compat = normalize_section(compat, "compat"),
+    flavors = normalize_section(flavors, "flavors")
+  )
+  overrides <- Filter(Negate(is.null), overrides)
   if (!is.null(path)) {
     path <- path.expand(scalar_character(path, "path"))
   }
@@ -126,13 +193,13 @@ panache_format <- function(
   output <- unwrap_extendr_result(rust_format_document(
     text,
     flavor,
-    line_width,
-    wrap,
     start_line,
     end_line,
     r_formatter,
     config,
-    path
+    path,
+    isolated,
+    overrides
   ))
   # Signal warnings here so callers can handle them outside the Rust callback.
   for (problem in problems) {
@@ -147,6 +214,7 @@ panache_format <- function(
 #'
 #' @param path Path to a UTF-8 Markdown, Quarto, or R Markdown document.
 #' @inheritParams panache_format
+#' @inherit panache_format details
 #'
 #' @return Invisibly, `TRUE` if the file changed and `FALSE` otherwise.
 #' @export
@@ -156,15 +224,55 @@ panache_format_file <- function(
   line_width = NULL,
   wrap = NULL,
   range = NULL,
-  config = NULL
+  config = NULL,
+  line_ending = NULL,
+  math = NULL,
+  math_indent = NULL,
+  math_delimiter_style = NULL,
+  math_signatures = NULL,
+  table_indent = NULL,
+  tab_stops = NULL,
+  tab_width = NULL,
+  horizontal_rule_style = NULL,
+  lang = NULL,
+  no_break_abbreviations = NULL,
+  formatters = NULL,
+  extensions = NULL,
+  compat = NULL,
+  flavors = NULL,
+  isolated = FALSE
 ) {
-  path <- scalar_character(path, "path")
+  path <- path.expand(scalar_character(path, "path"))
   if (!file.exists(path)) {
     stop("File does not exist: ", path, call. = FALSE)
   }
   input <- rawToChar(readBin(path, what = "raw", n = file.info(path)$size))
   input <- utf8_character(input, "file contents")
-  output <- panache_format(input, flavor, line_width, wrap, range, config, path)
+  output <- panache_format(
+    text = input,
+    flavor = flavor,
+    line_width = line_width,
+    wrap = wrap,
+    range = range,
+    config = config,
+    path = path,
+    line_ending = line_ending,
+    math = math,
+    math_indent = math_indent,
+    math_delimiter_style = math_delimiter_style,
+    math_signatures = math_signatures,
+    table_indent = table_indent,
+    tab_stops = tab_stops,
+    tab_width = tab_width,
+    horizontal_rule_style = horizontal_rule_style,
+    lang = lang,
+    no_break_abbreviations = no_break_abbreviations,
+    formatters = formatters,
+    extensions = extensions,
+    compat = compat,
+    flavors = flavors,
+    isolated = isolated
+  )
   changed <- !identical(input, output)
 
   if (changed) {

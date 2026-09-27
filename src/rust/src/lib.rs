@@ -2,7 +2,7 @@ use extendr_api::prelude::*;
 use panache_formatter::config::Flavor;
 use panache_formatter::directives::{DirectiveTracker, extract_directive_from_node};
 use panache_formatter::syntax::{SyntaxKind, SyntaxNode};
-use panache_formatter::{Config, FormattedCodeMap, WrapMode};
+use panache_formatter::{Config, FormattedCodeMap};
 
 mod config;
 mod external;
@@ -21,49 +21,34 @@ fn parse_flavor(value: &str) -> extendr_api::Result<Flavor> {
     }
 }
 
-fn parse_wrap(value: &str) -> extendr_api::Result<WrapMode> {
-    match value {
-        "preserve" => Ok(WrapMode::Preserve),
-        "reflow" => Ok(WrapMode::Reflow),
-        "sentence" => Ok(WrapMode::Sentence),
-        "semantic" => Ok(WrapMode::Semantic),
-        other => Err(format!("unknown wrapping strategy `{other}`").into()),
-    }
-}
-
 #[extendr]
 #[allow(clippy::too_many_arguments)]
 fn rust_format_document(
     text: &str,
     flavor: Nullable<String>,
-    line_width: Nullable<i32>,
-    wrap: Nullable<String>,
     start_line: Nullable<i32>,
     end_line: Nullable<i32>,
     r_formatter: Nullable<Function>,
-    settings: Robj,
+    config_path: Nullable<String>,
     document_path: Nullable<String>,
+    isolated: bool,
+    overrides: List,
 ) -> extendr_api::Result<String> {
     let flavor = flavor
         .into_option()
         .map(|flavor| parse_flavor(&flavor))
         .transpose()?;
     let external = external::ExternalFormatters::load(
-        &settings,
+        config_path.into_option().as_deref(),
         document_path.into_option().as_deref(),
         flavor,
+        isolated,
+        crate::config::list_to_table(&overrides).map_err(extendr_api::Error::from)?,
     )
     .map_err(extendr_api::Error::from)?;
-    let mut config = external.formatter_config();
-    if let Nullable::NotNull(line_width) = line_width {
-        config.line_width = usize::try_from(line_width)
-            .map_err(|_| extendr_api::Error::from("line width must be positive"))?;
-    }
+    let config = external.formatter_config();
     if config.line_width == 0 {
         return Err("line width must be positive".into());
-    }
-    if let Nullable::NotNull(wrap) = wrap {
-        config.wrap = Some(parse_wrap(&wrap)?);
     }
 
     let line_range = match (start_line, end_line) {

@@ -18,19 +18,22 @@ panache::panache_format(
 )
 ```
 
-Pass a named R list to configure document formatting and external code
-formatters. Lists mirror Panache's TOML sections, with underscores or hyphens
-in option names:
+Use named arguments for formatting settings and named lists for related
+sections such as external code formatters:
 
 ```r
 panache::panache_format(
   document,
-  config = list(
-    format = list(line_width = 100, wrap = "sentence"),
-    formatters = list(r = "air", python = "ruff")
-  )
+  line_width = 100,
+  wrap = "sentence",
+  line_ending = "lf",
+  formatters = list(r = "air", python = "ruff")
 )
 ```
+
+Formatting arguments correspond to settings under `[format]` in TOML.
+`formatters`, `extensions`, `compat`, and `flavors` correspond to the
+respective TOML sections. List option names accept underscores or hyphens.
 
 You can also use the same `panache.toml` configuration as the Panache CLI.
 For example, use the arity CLI for R and Ruff for Python:
@@ -66,31 +69,48 @@ Both RStudio addins discover configuration from the active document's directory.
 working directory unless you supply a document `path`. Discovery, user
 configuration, `PANACHE_CONFIG`, and `extend` follow the Panache CLI.
 
-The `config` argument accepts:
+The `config` argument selects a configuration file:
 
 - `NULL` (the default): discover configuration.
 - `"path/to/panache.toml"`: load that file, including any `extend` chain.
-- A named list: use the supplied options and defaults, without discovering
-  or inheriting files. `list()` uses defaults.
-- `FALSE`: use defaults without discovering configuration.
 
-Explicit `flavor`, `line_width`, and `wrap` arguments override configuration
-values. In lists, `line_width`, `line_ending`, and `wrap` can also appear at
-the top level, for example `config = list(line_width = 100)`.
+Set `isolated = TRUE` to ignore all configuration files, including an explicit
+`config` path. Named arguments and path-based flavor detection still apply.
 
-Both addins also accept `config` directly and default to the `panache.config`
-R option. Set it in your R session or `.Rprofile` to configure the addin menu
+Named formatting arguments default to `NULL`, which inherits the configuration
+value or engine default. Explicit values override configuration. Grouped
+arguments merge supplied entries while preserving unspecified settings. Arrays
+replace inherited arrays, including empty formatter chains. As in TOML
+inheritance, `flavors` merges by path pattern, so assigning a pattern to another
+flavor replaces its old mapping. Empty grouped lists make no changes.
+
+```r
+panache::panache_format(
+  document,
+  config = "panache.toml",
+  line_width = 100,
+  extensions = list(smart = FALSE)
+)
+```
+
+Both addins accept a `config` path and default to the `panache.config` R option.
+Set it in your R session or `.Rprofile` to select a file for the addin menu
 commands:
 
 ```r
-options(panache.config = list(
-  format = list(line_width = 100),
-  formatters = list(python = "ruff")
-))
+options(panache.config = "~/config/panache.toml")
 ```
 
-This example keeps the built-in arity R formatter. To select the arity CLI,
-add `r = "arity"` to `formatters`.
+When called from R, addins also accept `isolated` and named formatting overrides:
+
+```r
+panache::format_document_addin(line_width = 100, formatters = list(r = "air"))
+```
+
+Earlier development versions accepted lists or `FALSE` as `config`. Move list
+settings to their named arguments and replace `config = FALSE` with
+`isolated = TRUE`. Named overrides retain project settings by default; use
+isolation when a call should depend only on its arguments and engine defaults.
 
 Chunk options and ignore regions are preserved, and selection formatting
 affects only the selected blocks. A missing or failing external formatter

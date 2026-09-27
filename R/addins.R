@@ -5,18 +5,26 @@
 #' configured through the active document's Panache configuration. R code
 #' defaults to the arity R package when no R formatter is configured.
 #'
-#' @param config A named options list, TOML path, `NULL` for discovery, or
-#'   `FALSE` for defaults, as in [panache_format()]. Defaults to the
-#'   `panache.config` R option, allowing configuration from `.Rprofile`.
+#' @param config A TOML path or `NULL` for discovery, as in [panache_format()].
+#'   Defaults to the `panache.config` R option, allowing a configuration path to
+#'   be set from `.Rprofile`.
+#' @param isolated Whether to ignore configuration files.
+#' @param ... Named formatting overrides passed to [panache_format()].
 #'
 #' @return `NULL`, invisibly.
 #' @export
-format_document_addin <- function(config = getOption("panache.config", NULL)) {
+format_document_addin <- function(
+  config = getOption("panache.config", NULL),
+  isolated = FALSE,
+  ...
+) {
   context <- active_document_context()
   input <- paste(context$contents, collapse = "\n")
   output <- panache_format(
     input,
     config = config,
+    isolated = isolated,
+    ...,
     path = document_path(context)
   )
 
@@ -29,7 +37,11 @@ format_document_addin <- function(config = getOption("panache.config", NULL)) {
 
 #' @rdname format_document_addin
 #' @export
-format_selection_addin <- function(config = getOption("panache.config", NULL)) {
+format_selection_addin <- function(
+  config = getOption("panache.config", NULL),
+  isolated = FALSE,
+  ...
+) {
   context <- active_document_context()
   selections <- context$selection
   if (length(selections) != 1L) {
@@ -42,6 +54,8 @@ format_selection_addin <- function(config = getOption("panache.config", NULL)) {
   output <- panache_format(
     input,
     config = config,
+    isolated = isolated,
+    ...,
     range = range,
     path = document_path(context)
   )

@@ -1,48 +1,107 @@
-normalize_config <- function(config) {
-  if (is.null(config) || identical(config, FALSE)) {
-    return(config)
+normalize_config_path <- function(config) {
+  if (is.null(config)) {
+    return(NULL)
   }
-  if (!is.list(config)) {
-    return(path.expand(scalar_character(config, "config")))
-  }
-  config <- normalize_config_value(config, "config")
-  if ("extend" %in% names(config)) {
+  if (is.list(config) || identical(config, FALSE)) {
     stop(
-      "`config$extend` requires a TOML file; pass its path as `config`.",
+      "`config` must be a TOML path or NULL. Use named arguments for overrides ",
+      "and `isolated = TRUE` to ignore configuration files.",
       call. = FALSE
     )
   }
-  for (name in intersect(
-    c("line-width", "line-ending", "wrap"),
-    names(config)
-  )) {
-    if (name %in% names(config[["format"]])) {
-      stop("`config` specifies `", name, "` more than once.", call. = FALSE)
-    }
-    config[["format"]][[name]] <- config[[name]]
-    config[[name]] <- NULL
+  config <- scalar_character(config, "config")
+  if (!nzchar(config)) {
+    stop("`config` must not be empty.", call. = FALSE)
   }
-  if ("formatters" %in% names(config)) {
-    if (!is.list(config$formatters)) {
-      stop("`config$formatters` must be a named list.", call. = FALSE)
+  path.expand(config)
+}
+
+scalar_flag <- function(value, name) {
+  if (!is.logical(value) || length(value) != 1L || is.na(value)) {
+    stop("`", name, "` must be TRUE or FALSE.", call. = FALSE)
+  }
+  value
+}
+
+normalize_format_options <- function(options) {
+  options <- Filter(Negate(is.null), options)
+  choices <- list(
+    line_ending = c("auto", "lf", "crlf"),
+    wrap = c("reflow", "sentence", "semantic", "preserve"),
+    math = c("reflow", "normalize", "verbatim"),
+    math_delimiter_style = c("preserve", "dollars", "backslash"),
+    tab_stops = c("normalize", "preserve"),
+    horizontal_rule_style = c("line-width", "compact")
+  )
+  for (name in intersect(names(options), names(choices))) {
+    value <- scalar_character(options[[name]], name)
+    options[[name]] <- match.arg(value, choices[[name]])
+  }
+  for (name in intersect(names(options), c("line_width", "tab_width"))) {
+    options[[name]] <- positive_integer(options[[name]], name)
+  }
+  for (name in intersect(names(options), c("math_indent", "table_indent"))) {
+    value <- options[[name]]
+    maximum <- if (name == "table_indent") 3 else .Machine$integer.max
+    if (
+      !is.numeric(value) ||
+        length(value) != 1L ||
+        is.na(value) ||
+        !is.finite(value) ||
+        value != trunc(value) ||
+        value < 0 ||
+        value > maximum
+    ) {
+      stop(
+        "`",
+        name,
+        "` must be a whole number from 0 through ",
+        maximum,
+        ".",
+        call. = FALSE
+      )
     }
-    for (name in names(config$formatters)) {
-      value <- config$formatters[[name]]
-      if (!is.character(value) && !is.list(value)) {
+    options[[name]] <- as.integer(value)
+  }
+  if (!is.null(options$lang)) {
+    options$lang <- scalar_character(options$lang, "lang")
+  }
+  normalize_config_value(options, "format")
+}
+
+normalize_section <- function(value, name) {
+  if (is.null(value)) {
+    return(NULL)
+  }
+  if (!is.list(value)) {
+    stop("`", name, "` must be a named list.", call. = FALSE)
+  }
+  value <- normalize_config_value(value, name, field = name)
+  if (name == "formatters") {
+    for (key in names(value)) {
+      entry <- value[[key]]
+      if (!is.character(entry) && !is.list(entry)) {
         stop(
-          "`config$formatters$",
-          name,
+          "`formatters$",
+          key,
           "` must be a preset, chain, or named definition.",
           call. = FALSE
         )
       }
-      if (is.list(value)) {
-        fields <- c("cmd", "args", "stdin", "prepend-args", "append-args")
-        unknown <- setdiff(names(value), fields)
+      if (is.list(entry)) {
+        fields <- c(
+          "preset",
+          "cmd",
+          "args",
+          "stdin",
+          "prepend-args",
+          "append-args"
+        )
+        unknown <- setdiff(names(entry), fields)
         if (length(unknown)) {
           stop(
-            "Unknown `config$formatters$",
-            name,
+            "Unknown `formatters$",
+            key,
             "` option: ",
             unknown[[1L]],
             call. = FALSE
@@ -51,7 +110,7 @@ normalize_config <- function(config) {
       }
     }
   }
-  config
+  value
 }
 
 normalize_config_value <- function(value, context, field = "", parent = "") {

@@ -5,14 +5,26 @@
 \alias{format_selection_addin}
 \title{Format the active document with Panache}
 \usage{
-format_document_addin(config = getOption("panache.config", NULL))
+format_document_addin(
+  config = getOption("panache.config", NULL),
+  isolated = FALSE,
+  ...
+)
 
-format_selection_addin(config = getOption("panache.config", NULL))
+format_selection_addin(
+  config = getOption("panache.config", NULL),
+  isolated = FALSE,
+  ...
+)
 }
 \arguments{
-\item{config}{A named options list, TOML path, \code{NULL} for discovery, or
-\code{FALSE} for defaults, as in \code{\link[=panache_format]{panache_format()}}. Defaults to the
-\code{panache.config} R option, allowing configuration from \code{.Rprofile}.}
+\item{config}{A TOML path or \code{NULL} for discovery, as in \code{\link[=panache_format]{panache_format()}}.
+Defaults to the \code{panache.config} R option, allowing a configuration path to
+be set from \code{.Rprofile}.}
+
+\item{isolated}{Whether to ignore configuration files.}
+
+\item{...}{Named formatting overrides passed to \code{\link[=panache_format]{panache_format()}}.}
 }
 \value{
 \code{NULL}, invisibly.

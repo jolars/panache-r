@@ -11,7 +11,23 @@ panache_format(
   wrap = NULL,
   range = NULL,
   config = NULL,
-  path = NULL
+  path = NULL,
+  line_ending = NULL,
+  math = NULL,
+  math_indent = NULL,
+  math_delimiter_style = NULL,
+  math_signatures = NULL,
+  table_indent = NULL,
+  tab_stops = NULL,
+  tab_width = NULL,
+  horizontal_rule_style = NULL,
+  lang = NULL,
+  no_break_abbreviations = NULL,
+  formatters = NULL,
+  extensions = NULL,
+  compat = NULL,
+  flavors = NULL,
+  isolated = FALSE
 )
 }
 \arguments{
@@ -33,21 +49,63 @@ to use the configuration value (80 by default).}
 \item{range}{\code{NULL}, or an integer vector containing the first and last lines
 to format.}
 
-\item{config}{A named list of Panache options, a character scalar giving a
-TOML configuration path, \code{NULL} to discover a file, or \code{FALSE} to use only
-defaults. Lists mirror the TOML sections, for example
-\code{list(format = list(line_width = 100), formatters = list(r = "air"))}.
-Option names accept underscores or hyphens. \code{line_width}, \code{line_ending},
-and \code{wrap} can also appear directly in the list. Explicit \code{flavor},
-\code{line_width}, and \code{wrap} arguments override configuration values. Lists do
-not discover or inherit files; \code{list()} uses defaults. TOML paths support
-\code{extend}. Discovery follows the Panache CLI: the nearest project file, then
-\code{PANACHE_CONFIG}, then the user configuration. The default arity R
-interface uses the resolved line width, capped at 1000 columns.}
+\item{config}{A character scalar giving a TOML configuration path, or \code{NULL}
+to discover configuration. Discovery uses the nearest project file, then
+\code{PANACHE_CONFIG}, then the user configuration. Files can inherit settings
+through \code{extend}. Lists and logical values are not accepted.}
 
 \item{path}{Optional document path used to detect the flavor and discover
 configuration. If \code{NULL}, discovery starts in the working directory. The
 file is not read.}
+
+\item{line_ending}{Output line endings: \code{"auto"}, \code{"lf"}, or \code{"crlf"}.
+\code{"auto"} preserves the first source line ending's style.}
+
+\item{math}{Math formatting: \code{"reflow"}, \code{"normalize"}, or \code{"verbatim"}.}
+
+\item{math_indent}{Nonnegative indentation width for display math.}
+
+\item{math_delimiter_style}{Math delimiters: \code{"preserve"}, \code{"dollars"}, or
+\code{"backslash"}.}
+
+\item{math_signatures}{Named list of TeX command signatures, without leading
+backslashes in command names. Each signature is a list of argument
+definitions, for example \code{list(custom = list(list(kind = "brace", domain = "text")))}.}
+
+\item{table_indent}{Table indentation from 0 through 3 spaces.}
+
+\item{tab_stops}{Tab handling: \code{"normalize"} or \code{"preserve"}.}
+
+\item{tab_width}{Positive tab width used when normalizing tabs.}
+
+\item{horizontal_rule_style}{Horizontal rules: \code{"line-width"} or \code{"compact"}.}
+
+\item{lang}{Fallback document language for sentence wrapping, such as \code{"en"}.}
+
+\item{no_break_abbreviations}{Character vector of additional abbreviations
+for sentence wrapping, or a named list of vectors keyed by language, with
+an optional \code{default} entry.}
+
+\item{formatters}{Named list of language mappings and formatter definitions,
+corresponding to \verb{[formatters]} in TOML. Use \code{list(r = character())} to
+preserve R code. Definitions can refer to presets or names from the loaded
+configuration. The default arity R interface uses the resolved line width,
+capped at 1000 columns.}
+
+\item{extensions}{Named list of extension flags, optionally grouped by
+flavor, corresponding to \verb{[extensions]} in TOML.}
+
+\item{compat}{Named list of compatibility targets, corresponding to
+\verb{[compat]} in TOML, for example \code{list(pandoc = "3.7")}.}
+
+\item{flavors}{Named list of filename-pattern vectors keyed by flavor,
+corresponding to \verb{[flavors]} in TOML. Patterns merge by path pattern, as
+with \code{extend}; assigning a pattern to a new flavor replaces its old
+mapping.}
+
+\item{isolated}{Whether to ignore all configuration files, including an
+explicit \code{config} path. Named overrides and path-based flavor detection
+still apply. Defaults to \code{FALSE}.}
 }
 \value{
 A character scalar containing the formatted document.
@@ -63,14 +121,20 @@ If arity cannot format a chunk, a warning is issued and its code is
 preserved.
 }
 \details{
-Use \code{config = list(formatters = list(r = "arity"))} to select the arity CLI,
-replace \code{"arity"} with \code{"air"} to select Air, or with \code{character()} to leave
-R code alone. Custom commands and other languages use the same configuration
-as the Panache CLI. External formatters must be installed separately. If a
-command is unavailable or a formatter chain fails, the original code is
-preserved.
+Use \code{formatters = list(r = "arity")} to select the arity CLI, replace
+\code{"arity"} with \code{"air"} to select Air, or with \code{character()} to leave R code
+alone. Custom commands and other languages use the same configuration as the
+Panache CLI. External formatters must be installed separately. If a command
+is unavailable or a formatter chain fails, the original code is preserved.
+
+Formatting options are named arguments corresponding to settings under
+\verb{[format]} in TOML. \code{NULL} inherits the configuration value or engine
+default. Explicit arguments override configuration values. Grouped arguments
+merge supplied entries, preserving unspecified settings; arrays replace
+inherited arrays, except for the pattern-based \code{flavors} merge. Empty grouped
+lists make no changes. List option names accept underscores or hyphens.
 }
 \examples{
 panache_format("# Heading\n\nSome text.\n", flavor = "quarto")
-panache_format("A short paragraph.\n", config = list(line_width = 60))
+panache_format("A short paragraph.\n", line_width = 60, isolated = TRUE)
 }

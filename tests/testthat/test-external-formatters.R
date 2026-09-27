@@ -76,7 +76,7 @@ test_that("explicit configuration and isolated formatting override discovery", {
   input <- "```r\nx<-1\n```\n"
   expected <- "```r\nx <- 1\n```\n"
   expect_identical(panache_format(input, config = explicit), expected)
-  expect_identical(panache_format(input, config = FALSE), expected)
+  expect_identical(panache_format(input, isolated = TRUE), expected)
   expect_error(panache_format(input, config = "missing.toml"), "missing.toml")
   for (value in list(TRUE, NA, 1, character())) {
     expect_error(panache_format(input, config = value), "config")

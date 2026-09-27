@@ -790,6 +790,7 @@ name = "panache-r"
 version = "0.0.0"
 dependencies = [
  "extendr-api",
+ "globset",
  "panache",
  "panache-formatter",
  "panache-parser",
