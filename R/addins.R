@@ -5,11 +5,11 @@
 #' configured through the active document's Panache configuration. R code
 #' defaults to the arity R package when no R formatter is configured.
 #'
-#' @param config A TOML path or `NULL` for discovery, as in [panache_format()].
+#' @param config A TOML path or `NULL` for discovery, as in [format_text()].
 #'   Defaults to the `panache.config` R option, allowing a configuration path to
 #'   be set from `.Rprofile`.
 #' @param isolated Whether to ignore configuration files.
-#' @param ... Named formatting overrides passed to [panache_format()].
+#' @param ... Named formatting overrides passed to [format_text()].
 #'
 #' @return `NULL`, invisibly.
 #' @export
@@ -20,7 +20,7 @@ format_document_addin <- function(
 ) {
   context <- active_document_context()
   input <- paste(context$contents, collapse = "\n")
-  output <- panache_format(
+  output <- format_text(
     input,
     config = config,
     isolated = isolated,
@@ -51,7 +51,7 @@ format_selection_addin <- function(
   selection <- selections[[1L]]$range
   range <- c(selection$start$row, selection$end$row)
   input <- paste(context$contents, collapse = "\n")
-  output <- panache_format(
+  output <- format_text(
     input,
     config = config,
     isolated = isolated,

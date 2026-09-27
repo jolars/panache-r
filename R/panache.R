@@ -1,6 +1,6 @@
 #' Format a document with Panache
 #'
-#' `panache_format()` formats a complete document held in a character scalar.
+#' `format_text()` formats a complete document held in a character scalar.
 #' Use `range` to restrict formatting to a one-indexed, inclusive line range;
 #' Panache formats blocks overlapping that range. External code formatters use
 #' Panache's `[formatters]` configuration, including presets, custom commands,
@@ -83,9 +83,9 @@
 #' @export
 #'
 #' @examples
-#' panache_format("# Heading\n\nSome text.\n", flavor = "quarto")
-#' panache_format("A short paragraph.\n", line_width = 60, isolated = TRUE)
-panache_format <- function(
+#' format_text("# Heading\n\nSome text.\n", flavor = "quarto")
+#' format_text("A short paragraph.\n", line_width = 60, isolated = TRUE)
+format_text <- function(
   text,
   flavor = NULL,
   line_width = NULL,
@@ -213,12 +213,12 @@ panache_format <- function(
 #' The file is replaced only when formatting changes its contents.
 #'
 #' @param path Path to a UTF-8 Markdown, Quarto, or R Markdown document.
-#' @inheritParams panache_format
-#' @inherit panache_format details
+#' @inheritParams format_text
+#' @inherit format_text details
 #'
 #' @return Invisibly, `TRUE` if the file changed and `FALSE` otherwise.
 #' @export
-panache_format_file <- function(
+format_file <- function(
   path,
   flavor = NULL,
   line_width = NULL,
@@ -248,7 +248,7 @@ panache_format_file <- function(
   }
   input <- rawToChar(readBin(path, what = "raw", n = file.info(path)$size))
   input <- utf8_character(input, "file contents")
-  output <- panache_format(
+  output <- format_text(
     text = input,
     flavor = flavor,
     line_width = line_width,

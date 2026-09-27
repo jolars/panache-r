@@ -18,13 +18,13 @@ format_selection_addin(
 )
 }
 \arguments{
-\item{config}{A TOML path or \code{NULL} for discovery, as in \code{\link[=panache_format]{panache_format()}}.
+\item{config}{A TOML path or \code{NULL} for discovery, as in \code{\link[=format_text]{format_text()}}.
 Defaults to the \code{panache.config} R option, allowing a configuration path to
 be set from \code{.Rprofile}.}
 
 \item{isolated}{Whether to ignore configuration files.}
 
-\item{...}{Named formatting overrides passed to \code{\link[=panache_format]{panache_format()}}.}
+\item{...}{Named formatting overrides passed to \code{\link[=format_text]{format_text()}}.}
 }
 \value{
 \code{NULL}, invisibly.

@@ -2,18 +2,18 @@ test_that("named formatting options override discovered settings", {
   input <- "one two three four five six seven eight nine ten\n"
   local_panache_project(c("[format]", "line-width = 20"))
   expect_identical(
-    panache_format(input),
-    panache_format(input, line_width = 20L, isolated = TRUE)
+    format_text(input),
+    format_text(input, line_width = 20L, isolated = TRUE)
   )
   expect_identical(
-    panache_format(input, line_width = 80L, wrap = "preserve"),
+    format_text(input, line_width = 80L, wrap = "preserve"),
     input
   )
 })
 
 test_that("existing wrapping abbreviations remain supported", {
   expect_identical(
-    panache_format(
+    format_text(
       "First sentence. Second sentence.\n",
       wrap = "sent",
       isolated = TRUE
@@ -38,9 +38,9 @@ test_that("named options and TOML configurations have the same effect", {
     formatters = list(r = character())
   )
   input <- "First sentence. Second sentence.\n\n```r\nx<-1\n```\n"
-  from_file <- panache_format(input, config = "panache.toml")
+  from_file <- format_text(input, config = "panache.toml")
   expect_identical(
-    do.call(panache_format, c(list(text = input, isolated = TRUE), config)),
+    do.call(format_text, c(list(text = input, isolated = TRUE), config)),
     from_file
   )
   expect_match(
@@ -55,7 +55,7 @@ test_that("empty grouped overrides preserve discovered configuration", {
   local_panache_project(c('[formatters]', 'r = []'))
   input <- "```r\nx<-1\n```\n"
   expect_identical(
-    panache_format(input, formatters = list(), extensions = list()),
+    format_text(input, formatters = list(), extensions = list()),
     input
   )
 })
@@ -81,7 +81,7 @@ test_that("formatter arguments support presets and custom chains", {
     )
   )
   expect_identical(
-    panache_format("```r\nx<-1\n```\n", formatters = config$formatters),
+    format_text("```r\nx<-1\n```\n", formatters = config$formatters),
     "```r\nx=3\n```\n"
   )
 })
@@ -90,7 +90,7 @@ test_that("the arity CLI can be selected from an R list", {
   skip_if(!nzchar(Sys.which("arity")), "arity CLI is not installed")
   local_panache_project()
   expect_identical(
-    panache_format("```r\nx<-1\n```\n", formatters = list(r = "arity")),
+    format_text("```r\nx<-1\n```\n", formatters = list(r = "arity")),
     "```r\nx <- 1\n```\n"
   )
 })
@@ -99,7 +99,7 @@ test_that("built-in arity uses the configured document width", {
   local_panache_project()
   code <- "result<-some_function(first_argument,second_argument,third_argument)\n"
   input <- paste0("```r\n", code, "```\n")
-  output <- panache_format(input, line_width = 30)
+  output <- format_text(input, line_width = 30)
   expect_match(output, arity::format_text(code, line_width = 30), fixed = TRUE)
 })
 
@@ -108,15 +108,15 @@ test_that("file formatting preserves option precedence", {
   path <- withr::local_tempfile(fileext = ".qmd")
   input <- "one two three four five six seven eight nine ten\n"
   writeBin(charToRaw(input), path)
-  expect_false(panache_format_file(
+  expect_false(format_file(
     path,
     config = "panache.toml",
     line_width = 80
   ))
-  expect_true(panache_format_file(path, config = "panache.toml"))
+  expect_true(format_file(path, config = "panache.toml"))
   expect_identical(
     paste0(paste(readLines(path), collapse = "\n"), "\n"),
-    panache_format(input)
+    format_text(input)
   )
 })
 
@@ -139,15 +139,15 @@ test_that("named options preserve single-element arrays and math signatures", {
   input <- "Use abbr. here. Next sentence.\n\n$\\custom{some text}$\n"
   expect_identical(
     do.call(
-      panache_format,
+      format_text,
       c(list(text = input, isolated = TRUE, path = "document.custom"), config)
     ),
-    panache_format(input, config = "panache.toml", path = "document.custom")
+    format_text(input, config = "panache.toml", path = "document.custom")
   )
   config$no_break_abbreviations <- list(default = "abbr.")
   expect_identical(
-    do.call(panache_format, c(list(text = input, isolated = TRUE), config)),
-    panache_format(input, config = "panache.toml")
+    do.call(format_text, c(list(text = input, isolated = TRUE), config)),
+    format_text(input, config = "panache.toml")
   )
 })
 
@@ -155,12 +155,12 @@ test_that("explicit flavor overrides configuration and the document path", {
   local_panache_project('flavor = "commonmark"')
   input <- "::: note\nSome text.\n:::\n"
   expect_identical(
-    panache_format(input, flavor = "commonmark", path = "document.qmd"),
-    panache_format(input, isolated = TRUE, flavor = "commonmark")
+    format_text(input, flavor = "commonmark", path = "document.qmd"),
+    format_text(input, isolated = TRUE, flavor = "commonmark")
   )
   expect_identical(
-    panache_format(input, flavor = "quarto"),
-    panache_format(input, isolated = TRUE, flavor = "quarto")
+    format_text(input, flavor = "quarto"),
+    format_text(input, isolated = TRUE, flavor = "quarto")
   )
 })
 
@@ -182,10 +182,10 @@ test_that("overrides preserve extended settings and formatter definitions", {
     "base.toml"
   )
   input <- "First sentence. Second sentence.\n\n```r\nx<-1\n```\n"
-  output <- panache_format(input, line_width = 100)
+  output <- format_text(input, line_width = 100)
   expect_match(output, "First sentence.\r\nSecond sentence.\r\n", fixed = TRUE)
   expect_match(output, "x<-1\r\n", fixed = TRUE)
-  output <- panache_format(input, formatters = list(r = "custom"))
+  output <- format_text(input, formatters = list(r = "custom"))
   expect_match(output, "x=2\r\n", fixed = TRUE)
 })
 
@@ -201,11 +201,11 @@ test_that(
     ))
     input <- "```r\nx<-1\n```\n\n```python\nx=1\n```\n"
     expect_identical(
-      panache_format(input, formatters = list(r = character())),
+      format_text(input, formatters = list(r = character())),
       "```r\nx<-1\n```\n\n```python\nx=2\n```\n"
     )
     expect_match(
-      panache_format(input, formatters = list(r = "first")),
+      format_text(input, formatters = list(r = "first")),
       "```r\nx=2\n```",
       fixed = TRUE
     )
@@ -217,7 +217,7 @@ test_that(
   {
     local_panache_project(c('[extensions.quarto]', 'smart = true'))
     input <- '"Hello" -- world.\n'
-    expected <- panache_format(
+    expected <- format_text(
       input,
       flavor = "quarto",
       isolated = TRUE,
@@ -225,7 +225,7 @@ test_that(
     )
     expect_identical(expected, input)
     expect_identical(
-      panache_format(
+      format_text(
         input,
         path = "document.qmd",
         extensions = list(smart = FALSE)
@@ -233,7 +233,7 @@ test_that(
       expected
     )
     expect_identical(
-      panache_format(
+      format_text(
         input,
         path = "document.qmd",
         extensions = list(quarto = list(smart = FALSE))
@@ -249,7 +249,7 @@ test_that(
     local_panache_project(c('[formatters]', 'r = []'))
     input <- "```{r}\nx<-1\n```\n"
     expect_identical(
-      panache_format(
+      format_text(
         input,
         isolated = TRUE,
         config = "missing.toml",
@@ -258,7 +258,7 @@ test_that(
       "```{r}\nx <- 1\n```\n"
     )
     expect_identical(
-      panache_format(
+      format_text(
         input,
         isolated = TRUE,
         path = "document.qmd",
@@ -297,7 +297,7 @@ test_that("invalid arguments fail before changing a file", {
     list(math_signatures = list(custom = list(list(kind = "invalid"))))
   )
   for (args in invalid) {
-    expect_error(do.call(panache_format_file, c(list(path = path), args)))
+    expect_error(do.call(format_file, c(list(path = path), args)))
     expect_identical(readLines(path), "text")
   }
 })
@@ -314,13 +314,13 @@ test_that(
     input <- "::: note\nSome text.\n:::\n"
     overrides <- list(commonmark = "README.md", quarto = "other/*.md")
     expect_identical(
-      panache_format(
+      format_text(
         input,
         path = file.path(project, "docs/test.md"),
         config = "panache.toml",
         flavors = overrides
       ),
-      panache_format(input, flavor = "gfm", isolated = TRUE)
+      format_text(input, flavor = "gfm", isolated = TRUE)
     )
     withr::local_dir(tempdir())
     for (entry in list(
@@ -329,12 +329,12 @@ test_that(
       c("other/test.md", "quarto")
     )) {
       expect_identical(
-        panache_format(
+        format_text(
           input,
           path = file.path(project, entry[[1L]]),
           flavors = overrides
         ),
-        panache_format(input, flavor = entry[[2L]], isolated = TRUE)
+        format_text(input, flavor = entry[[2L]], isolated = TRUE)
       )
     }
   }
@@ -353,8 +353,8 @@ test_that("adding flavor patterns preserves absolute inherited patterns", {
   )
   input <- "::: note\nSome text.\n:::\n"
   expect_identical(
-    panache_format(input, path = path, flavors = list(gfm = "other.md")),
-    panache_format(input, isolated = TRUE, flavor = "commonmark")
+    format_text(input, path = path, flavors = list(gfm = "other.md")),
+    format_text(input, isolated = TRUE, flavor = "commonmark")
   )
 })
 
@@ -380,7 +380,7 @@ test_that("formatting arguments match their TOML settings", {
     "First sentence. Use abbr. here.\n\n---\n\n",
     "\\[ x+y \\]\n\n| a | b |\n|---|---|\n| 1 | 2 |\n"
   )
-  expected <- panache_format(input)
+  expected <- format_text(input)
   args <- list(
     line_width = 30,
     line_ending = "crlf",
@@ -397,13 +397,13 @@ test_that("formatting arguments match their TOML settings", {
     compat = list(pandoc = "3.7")
   )
   expect_identical(
-    do.call(panache_format, c(list(text = input, isolated = TRUE), args)),
+    do.call(format_text, c(list(text = input, isolated = TRUE), args)),
     expected
   )
   path <- withr::local_tempfile(fileext = ".md")
   writeBin(charToRaw(input), path)
   expect_true(do.call(
-    panache_format_file,
+    format_file,
     c(list(path = path, isolated = TRUE), args)
   ))
   expect_identical(

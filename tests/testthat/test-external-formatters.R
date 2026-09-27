@@ -6,7 +6,7 @@ test_that("a Panache preset override replaces the built-in R formatter", {
   ))
   input <- "```{r}\nx<-1\n```\n"
   expect_identical(
-    panache_format(input, flavor = "quarto"),
+    format_text(input, flavor = "quarto"),
     "```{r}\nx=2\n```\n"
   )
 })
@@ -14,7 +14,7 @@ test_that("a Panache preset override replaces the built-in R formatter", {
 test_that("the arity preset runs the installed CLI", {
   skip_if(!nzchar(Sys.which("arity")), "arity CLI is not installed")
   local_panache_project(c("[formatters]", 'r = "arity"'))
-  expect_identical(panache_format("```r\nx<-1\n```\n"), "```r\nx <- 1\n```\n")
+  expect_identical(format_text("```r\nx<-1\n```\n"), "```r\nx <- 1\n```\n")
 })
 
 test_that("external formatter chains support other languages and aliases", {
@@ -31,7 +31,7 @@ test_that("external formatter chains support other languages and aliases", {
     )
   ))
   input <- "```python\nx=1\n```\n\n```r\nx<-1\n```\n"
-  output <- panache_format(input)
+  output <- format_text(input)
   expect_match(output, "x=3\n", fixed = TRUE)
   expect_match(output, "x <- 1\n", fixed = TRUE)
 })
@@ -51,13 +51,13 @@ test_that("file-based formatters receive a temporary file", {
       args = "{}"
     )
   ))
-  expect_identical(panache_format("```r\nx<-1\n```\n"), "```r\nx<-2\n```\n")
+  expect_identical(format_text("```r\nx<-1\n```\n"), "```r\nx<-2\n```\n")
 })
 
 test_that("an empty R formatter chain disables the built-in default", {
   local_panache_project(c('[formatters]', 'r = []'))
   input <- "```{r}\nx<-1\n```\n"
-  expect_identical(panache_format(input, flavor = "quarto"), input)
+  expect_identical(format_text(input, flavor = "quarto"), input)
 })
 
 test_that("file formatting discovers configuration relative to the document", {
@@ -66,7 +66,7 @@ test_that("file formatting discovers configuration relative to the document", {
   path <- file.path(project, "documents", "test.Rmd")
   writeLines(c("```{r}", "x<-1", "```"), path)
   withr::local_dir(tempdir())
-  expect_false(panache_format_file(path))
+  expect_false(format_file(path))
 })
 
 test_that("explicit configuration and isolated formatting override discovery", {
@@ -75,11 +75,11 @@ test_that("explicit configuration and isolated formatting override discovery", {
   writeLines(character(), explicit)
   input <- "```r\nx<-1\n```\n"
   expected <- "```r\nx <- 1\n```\n"
-  expect_identical(panache_format(input, config = explicit), expected)
-  expect_identical(panache_format(input, isolated = TRUE), expected)
-  expect_error(panache_format(input, config = "missing.toml"), "missing.toml")
+  expect_identical(format_text(input, config = explicit), expected)
+  expect_identical(format_text(input, isolated = TRUE), expected)
+  expect_error(format_text(input, config = "missing.toml"), "missing.toml")
   for (value in list(TRUE, NA, 1, character())) {
-    expect_error(panache_format(input, config = value), "config")
+    expect_error(format_text(input, config = value), "config")
   }
 })
 
@@ -87,7 +87,7 @@ test_that("extended formatter configurations preserve an explicit R opt-out", {
   local_panache_project(c('extend = "base.toml"', '[formatters]', 'r = []'))
   writeLines(c('[formatters]', 'r = "arity"'), "base.toml")
   input <- "```r\nx<-1\n```\n"
-  expect_identical(panache_format(input), input)
+  expect_identical(format_text(input), input)
 })
 
 test_that("external formatting honors selections and ignore directives", {
@@ -98,7 +98,7 @@ test_that("external formatting honors selections and ignore directives", {
   ))
   input <- "```r\nx<-1\n```\n\n```r\nx<-1\n```\n"
   expect_identical(
-    panache_format(input, range = c(6L, 6L)),
+    format_text(input, range = c(6L, 6L)),
     "```r\nx<-1\n```\n\n```r\nx=2\n```\n"
   )
   ignored <- paste0(
@@ -106,7 +106,7 @@ test_that("external formatting honors selections and ignore directives", {
     input,
     "\n<!-- panache-ignore-end -->\n"
   )
-  expect_identical(panache_format(ignored), ignored)
+  expect_identical(format_text(ignored), ignored)
 })
 
 test_that("a missing external command does not fall back to built-in arity", {
@@ -117,7 +117,7 @@ test_that("a missing external command does not fall back to built-in arity", {
     'cmd = "panache-test-formatter-does-not-exist"'
   ))
   input <- "```r\nx<-1\n```\n"
-  expect_identical(panache_format(input), input)
+  expect_identical(format_text(input), input)
 })
 
 test_that("a failing formatter chain leaves the original code intact", {
@@ -128,7 +128,7 @@ test_that("a failing formatter chain leaves the original code intact", {
     formatter_definition("fail", 'quit(status = 1L)')
   ))
   input <- "```r\nx<-1\n```\n"
-  expect_identical(panache_format(input), input)
+  expect_identical(format_text(input), input)
 })
 
 test_that("the document addin discovers the active document's configuration", {

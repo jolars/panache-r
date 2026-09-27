@@ -12,7 +12,7 @@ R code chunks and fenced R code blocks default to the
 automatically as a dependency. No separate arity executable is needed.
 
 ```r
-panache::panache_format(
+panache::format_text(
   "# Heading\n\nA paragraph that should be formatted.\n",
   flavor = "quarto"
 )
@@ -22,7 +22,7 @@ Use named arguments for formatting settings and named lists for related
 sections such as external code formatters:
 
 ```r
-panache::panache_format(
+panache::format_text(
   document,
   line_width = 100,
   wrap = "sentence",
@@ -65,7 +65,7 @@ stdin = false
 ```
 
 Both RStudio addins discover configuration from the active document's directory.
-`panache_format_file()` does the same. `panache_format()` searches from the
+`format_file()` does the same. `format_text()` searches from the
 working directory unless you supply a document `path`. Discovery, user
 configuration, `PANACHE_CONFIG`, and `extend` follow the Panache CLI.
 
@@ -85,7 +85,7 @@ inheritance, `flavors` merges by path pattern, so assigning a pattern to another
 flavor replaces its old mapping. Empty grouped lists make no changes.
 
 ```r
-panache::panache_format(
+panache::format_text(
   document,
   config = "panache.toml",
   line_width = 100,
