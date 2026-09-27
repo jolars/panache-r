@@ -5,14 +5,21 @@
 \alias{format_selection_addin}
 \title{Format the active document with Panache}
 \usage{
-format_document_addin()
+format_document_addin(config = getOption("panache.config", NULL))
 
-format_selection_addin()
+format_selection_addin(config = getOption("panache.config", NULL))
+}
+\arguments{
+\item{config}{A named options list, TOML path, \code{NULL} for discovery, or
+\code{FALSE} for defaults, as in \code{\link[=panache_format]{panache_format()}}. Defaults to the
+\code{panache.config} R option, allowing configuration from \code{.Rprofile}.}
 }
 \value{
 \code{NULL}, invisibly.
 }
 \description{
 These functions back the RStudio addins registered by the package. They must
-be called from an active RStudio source editor.
+be called from an active RStudio source editor. External formatters are
+configured through the active document's Panache configuration. R code
+defaults to the arity R package when no R formatter is configured.
 }

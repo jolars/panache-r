@@ -5,7 +5,7 @@
 #' @useDynLib panache, .registration = TRUE
 NULL
 
-rust_format_document <- function(text, flavor, line_width, wrap, start_line, end_line) .Call(wrap__rust_format_document, text, flavor, line_width, wrap, start_line, end_line)
+rust_format_document <- function(text, flavor, line_width, wrap, start_line, end_line, r_formatter, settings, document_path) .Call(wrap__rust_format_document, text, flavor, line_width, wrap, start_line, end_line, r_formatter, settings, document_path)
 
 rust_engine_version <- function() .Call(wrap__rust_engine_version)
 

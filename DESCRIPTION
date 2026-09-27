@@ -14,15 +14,20 @@ Description: Format Markdown, Quarto, and R Markdown documents with the
     compiled from source when the package is installed. Functions are provided
     for formatting character strings and files, together with addins for
     formatting documents open in the 'RStudio' integrated development
-    environment.
+    environment. R code chunks use 'arity' by default, and external code
+    formatters can be configured through R lists or 'Panache' configuration
+    files.
 License: MIT + file LICENSE
 URL: https://github.com/jolars/panache-r, https://panache.bz
 BugReports: https://github.com/jolars/panache-r/issues
 Depends:
     R (>= 4.2)
+Imports:
+    arity (>= 0.1.0)
 Suggests:
     rstudioapi,
-    testthat (>= 3.0.0)
+    testthat (>= 3.2.0),
+    withr
 Config/rextendr/version: 0.5.0
 Config/testthat/edition: 3
 Encoding: UTF-8

@@ -1,15 +1,24 @@
 #' Format the active document with Panache
 #'
 #' These functions back the RStudio addins registered by the package. They must
-#' be called from an active RStudio source editor.
+#' be called from an active RStudio source editor. External formatters are
+#' configured through the active document's Panache configuration. R code
+#' defaults to the arity R package when no R formatter is configured.
+#'
+#' @param config A named options list, TOML path, `NULL` for discovery, or
+#'   `FALSE` for defaults, as in [panache_format()]. Defaults to the
+#'   `panache.config` R option, allowing configuration from `.Rprofile`.
 #'
 #' @return `NULL`, invisibly.
 #' @export
-format_document_addin <- function() {
+format_document_addin <- function(config = getOption("panache.config", NULL)) {
   context <- active_document_context()
-  flavor <- flavor_from_path(context$path)
   input <- paste(context$contents, collapse = "\n")
-  output <- panache_format(input, flavor = flavor)
+  output <- panache_format(
+    input,
+    config = config,
+    path = document_path(context)
+  )
 
   if (!identical(input, output)) {
     rstudioapi::setDocumentContents(output, id = context$id)
@@ -20,7 +29,7 @@ format_document_addin <- function() {
 
 #' @rdname format_document_addin
 #' @export
-format_selection_addin <- function() {
+format_selection_addin <- function(config = getOption("panache.config", NULL)) {
   context <- active_document_context()
   selections <- context$selection
   if (length(selections) != 1L) {
@@ -32,8 +41,9 @@ format_selection_addin <- function() {
   input <- paste(context$contents, collapse = "\n")
   output <- panache_format(
     input,
-    flavor = flavor_from_path(context$path),
-    range = range
+    config = config,
+    range = range,
+    path = document_path(context)
   )
 
   if (!identical(input, output)) {
@@ -41,6 +51,10 @@ format_selection_addin <- function() {
   }
 
   invisible(NULL)
+}
+
+document_path <- function(context) {
+  if (nzchar(context$path)) context$path else NULL
 }
 
 active_document_context <- function() {

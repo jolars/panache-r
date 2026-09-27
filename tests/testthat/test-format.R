@@ -1,4 +1,5 @@
 test_that("documents are formatted", {
+  local_panache_project()
   input <- "# Heading\n\n-   one\n-   two\n"
   output <- panache_format(input, flavor = "quarto")
 
@@ -8,6 +9,7 @@ test_that("documents are formatted", {
 })
 
 test_that("text must be valid UTF-8", {
+  local_panache_project()
   invalid <- rawToChar(as.raw(c(0xff, 0xfe)))
   expect_error(panache_format(invalid), "valid UTF-8")
 
@@ -18,12 +20,14 @@ test_that("text must be valid UTF-8", {
 })
 
 test_that("numeric options require positive whole numbers", {
+  local_panache_project()
   expect_error(panache_format("text\n", line_width = 0), "line_width")
   expect_error(panache_format("text\n", line_width = 1.5), "line_width")
   expect_error(panache_format("text\n", line_width = Inf), "line_width")
 })
 
 test_that("invalid ranges are rejected", {
+  local_panache_project()
   expect_error(panache_format("text\n", range = c(3, 2)), "increasing")
   expect_error(panache_format("text\n", range = c(1.5, 2)), "range")
   expect_error(panache_format("text\n", range = c("1", "2")), "range")
@@ -32,6 +36,7 @@ test_that("invalid ranges are rejected", {
 })
 
 test_that("range formatting preserves unselected blocks", {
+  local_panache_project()
   first <- paste(rep("first", 20), collapse = " ")
   second <- paste(rep("second", 20), collapse = " ")
   input <- paste("# Heading", first, second, sep = "\n\n")
@@ -47,10 +52,12 @@ test_that("range formatting preserves unselected blocks", {
 })
 
 test_that("the engine version is reported", {
-  expect_identical(panache_engine_version(), "0.22.0")
+  local_panache_project()
+  expect_identical(panache_engine_version(), "0.25.0")
 })
 
 test_that("files are written only when formatting changes them", {
+  local_panache_project()
   path <- tempfile(fileext = ".qmd")
   on.exit(unlink(path))
   writeChar("# Heading\n", path, eos = NULL, useBytes = TRUE)
@@ -64,6 +71,7 @@ test_that("files are written only when formatting changes them", {
 })
 
 test_that("file errors are reported without modifying input", {
+  local_panache_project()
   missing <- tempfile(fileext = ".md")
   expect_error(panache_format_file(missing), "does not exist")
 

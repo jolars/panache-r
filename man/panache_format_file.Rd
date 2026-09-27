@@ -7,23 +7,41 @@
 panache_format_file(
   path,
   flavor = NULL,
-  line_width = 80L,
-  wrap = "reflow",
-  range = NULL
+  line_width = NULL,
+  wrap = NULL,
+  range = NULL,
+  config = NULL
 )
 }
 \arguments{
 \item{path}{Path to a UTF-8 Markdown, Quarto, or R Markdown document.}
 
-\item{flavor}{The Markdown flavor, or \code{NULL} to infer it from \code{path}.}
+\item{flavor}{The Markdown flavor, or \code{NULL} to use configuration and path
+detection (falling back to \code{"pandoc"}). One of \code{"pandoc"}, \code{"quarto"},
+\code{"rmarkdown"}, \code{"gfm"}, \code{"commonmark"}, \code{"multimarkdown"}, \code{"mdsvex"}, or
+\code{"myst"}.}
 
-\item{line_width}{A positive integer giving the target line width.}
+\item{line_width}{A positive integer giving the target line width, or \code{NULL}
+to use the configuration value (80 by default).}
 
 \item{wrap}{The wrapping strategy. One of \code{"reflow"}, \code{"sentence"},
-\code{"semantic"}, or \code{"preserve"}.}
+\code{"semantic"}, or \code{"preserve"}. \code{NULL} uses the configuration value
+(\code{"reflow"} by default).}
 
 \item{range}{\code{NULL}, or an integer vector containing the first and last lines
 to format.}
+
+\item{config}{A named list of Panache options, a character scalar giving a
+TOML configuration path, \code{NULL} to discover a file, or \code{FALSE} to use only
+defaults. Lists mirror the TOML sections, for example
+\code{list(format = list(line_width = 100), formatters = list(r = "air"))}.
+Option names accept underscores or hyphens. \code{line_width}, \code{line_ending},
+and \code{wrap} can also appear directly in the list. Explicit \code{flavor},
+\code{line_width}, and \code{wrap} arguments override configuration values. Lists do
+not discover or inherit files; \code{list()} uses defaults. TOML paths support
+\code{extend}. Discovery follows the Panache CLI: the nearest project file, then
+\code{PANACHE_CONFIG}, then the user configuration. The default arity R
+interface uses the resolved line width, capped at 1000 columns.}
 }
 \value{
 Invisibly, \code{TRUE} if the file changed and \code{FALSE} otherwise.
