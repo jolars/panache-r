@@ -340,6 +340,59 @@ test_that(
   }
 )
 
+test_that("flavor patterns resolve symlinked projects for unsaved documents", {
+  root <- withr::local_tempdir()
+  project <- file.path(root, "project")
+  alias <- file.path(root, "alias")
+  dir.create(project)
+  dir.create(file.path(project, ".git"))
+  dir.create(file.path(project, "docs"))
+  skip_if_not(
+    suppressWarnings(file.symlink(project, alias)),
+    "Directory symlinks are unavailable"
+  )
+  writeLines(
+    c("[flavors]", 'gfm = ["docs/*.md", "drafts/**/*.md"]'),
+    file.path(project, "panache.toml")
+  )
+  input <- "::: note\nSome text.\n:::\n"
+  writeLines(input, file.path(project, "docs/existing.md"))
+  withr::local_dir(alias)
+  expected <- format_text(input, flavor = "gfm", isolated = TRUE)
+  for (document in c("docs/existing.md", "docs/new.md", "drafts/nested/new.md")) {
+    for (config in list("panache.toml", file.path(project, "panache.toml"), NULL)) {
+      expect_identical(
+        format_text(
+          input,
+          path = file.path(alias, document),
+          config = config,
+          flavors = list(commonmark = "README.md")
+        ),
+        expected
+      )
+    }
+  }
+  path <- file.path(alias, "docs/new.md")
+  expect_identical(
+    format_text(
+      input,
+      path = path,
+      config = "panache.toml",
+      flavors = list(commonmark = gsub("\\", "/", path, fixed = TRUE))
+    ),
+    format_text(input, flavor = "commonmark", isolated = TRUE)
+  )
+  expect_identical(
+    format_text(
+      input,
+      path = file.path(project, "docs/new.md"),
+      config = file.path(alias, "panache.toml"),
+      flavors = list(commonmark = "README.md")
+    ),
+    expected
+  )
+})
+
 test_that("adding flavor patterns preserves absolute inherited patterns", {
   project <- local_panache_project()
   path <- file.path(project, "document.md")

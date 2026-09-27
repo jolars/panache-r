@@ -1,6 +1,6 @@
 use extendr_api::prelude::*;
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub fn load_config(
     config_path: Option<&str>,
@@ -73,8 +73,6 @@ fn detect_overridden_flavor(
 ) -> Option<panache_engine::config::Flavor> {
     use panache_engine::config::{Config, detect_flavor_from_path};
     let absolute = std::path::absolute(document).ok()?;
-    // Keep the same path representation on both sides; canonicalize() adds a
-    // verbatim prefix on Windows that synthetic document paths do not have.
     let anchor = source.project_anchor().and_then(|path| {
         if path.as_os_str().is_empty() {
             std::path::absolute(".").ok()
@@ -82,12 +80,20 @@ fn detect_overridden_flavor(
             std::path::absolute(path).ok()
         }
     });
+    // Symlinked paths can differ from the working directory's spelling. Resolve
+    // both sides for a relative candidate while retaining original absolute paths.
+    let canonical_relative = anchor.as_ref().and_then(|anchor| {
+        let document = canonicalize_for_matching(&absolute)?;
+        let anchor = anchor.canonicalize().ok()?;
+        document.strip_prefix(anchor).ok().map(Path::to_path_buf)
+    });
     let candidates: Vec<_> = [
         Some(document),
         Some(absolute.as_path()),
         anchor
             .as_ref()
             .and_then(|anchor| absolute.strip_prefix(anchor).ok()),
+        canonical_relative.as_deref(),
         document.file_name().map(Path::new),
     ]
     .into_iter()
@@ -129,6 +135,14 @@ fn detect_overridden_flavor(
         ..Config::default()
     };
     detect_flavor_from_path(document, &detection)
+}
+
+fn canonicalize_for_matching(path: &Path) -> Option<PathBuf> {
+    // Unsaved documents and their parent directories may not exist yet.
+    path.ancestors().find_map(|ancestor| {
+        let canonical = ancestor.canonicalize().ok()?;
+        Some(canonical.join(path.strip_prefix(ancestor).ok()?))
+    })
 }
 
 fn deserialize_config(
