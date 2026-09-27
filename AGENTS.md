@@ -50,3 +50,8 @@ short, imperative subjects such as `fix: reject empty input`. Pull requests
 should explain the user-visible effect, summarize validation performed, and link
 relevant issues. Include screenshots only for RStudio addin UI changes. CI must
 pass `R CMD check` on Linux, macOS, and Windows.
+
+## Versioning & Release Guidelines
+
+- Use conventional commits
+- `NEWS.md` is automatically generated via versionary. Do not edit it by hand.
