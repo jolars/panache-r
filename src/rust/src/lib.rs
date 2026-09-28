@@ -6,6 +6,7 @@ use panache_formatter::{Config, FormattedCodeMap};
 
 mod config;
 mod external;
+mod process;
 
 fn parse_flavor(value: &str) -> extendr_api::Result<Flavor> {
     match value {

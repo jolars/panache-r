@@ -116,6 +116,10 @@ Chunk options and ignore regions are preserved, and selection formatting
 affects only the selected blocks. A missing or failing external formatter
 leaves the chunk's code intact. Invalid R code handled by the default arity R
 interface also produces an R warning. Inline code is not sent to formatters.
+External commands have a 30-second timeout per command. Timed-out processes are
+terminated before formatting returns. Concurrency follows `external-max-parallel`
+in the configuration. During CRAN checks, a nonempty `_R_CHECK_LIMIT_CORES_` caps
+it at two processes. A positive `OMP_THREAD_LIMIT` also limits concurrency.
 
 Installing from source requires Cargo and Rust 1.89 or newer. CRAN source
 tarballs include vendored Rust dependencies and build without network access.

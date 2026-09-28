@@ -14,6 +14,10 @@
 #' alone. Custom commands and other languages use the same configuration as the
 #' Panache CLI. External formatters must be installed separately. If a command
 #' is unavailable or a formatter chain fails, the original code is preserved.
+#' External commands have a 30-second timeout per command. Timed-out processes
+#' are terminated before returning. Concurrency follows the configuration,
+#' capped at two when `_R_CHECK_LIMIT_CORES_` is nonempty, and also respects a
+#' positive `OMP_THREAD_LIMIT`.
 #'
 #' @param text A character scalar containing a valid UTF-8 document. Strings
 #'   with a declared encoding are converted to UTF-8.

@@ -113,6 +113,10 @@ Use \code{formatters = list(r = "arity")} to select the arity CLI, replace
 alone. Custom commands and other languages use the same configuration as the
 Panache CLI. External formatters must be installed separately. If a command
 is unavailable or a formatter chain fails, the original code is preserved.
+External commands have a 30-second timeout per command. Timed-out processes
+are terminated before returning. Concurrency follows the configuration,
+capped at two when \verb{_R_CHECK_LIMIT_CORES_} is nonempty, and also respects a
+positive \code{OMP_THREAD_LIMIT}.
 
 Formatting options are named arguments corresponding to settings under
 \verb{[format]} in TOML. \code{NULL} inherits the configuration value or engine

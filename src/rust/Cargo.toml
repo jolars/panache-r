@@ -20,6 +20,8 @@ globset = "0.4"
 panache-engine = { package = "panache", version = "=3.12.0", default-features = false }
 panache-formatter = "=0.25.0"
 panache-parser = "0.30.0"
+rayon = "1.12"
+tempfile = "3.27"
 toml = "1.1"
 
 [profile.release]

@@ -33,3 +33,33 @@ formatter_definition <- function(
     paste0("stdin = ", tolower(as.character(stdin)))
   )
 }
+
+external_formatter_peak <- function(limit) {
+  records <- withr::local_tempdir()
+  local_panache_project(c(
+    paste0("external-max-parallel = ", limit),
+    "[formatters]",
+    'python = "worker"',
+    formatter_definition(
+      "worker",
+      c(
+        'input <- readLines(file("stdin"))',
+        'start <- as.numeric(Sys.time())',
+        'Sys.sleep(0.5)',
+        'end <- as.numeric(Sys.time())',
+        'path <- file.path(commandArgs(TRUE)[[1L]], paste0(Sys.getpid(), ".rds"))',
+        'saveRDS(c(start, end), path)',
+        'cat(input, "\\n", sep = "")'
+      ),
+      args = records
+    )
+  ))
+  input <- paste0("```python\nx=", 1:4, "\n```\n", collapse = "\n")
+  expect_identical(format_text(input), input)
+  intervals <- lapply(list.files(records, full.names = TRUE), readRDS)
+  expect_length(intervals, 4L)
+  events <- do.call(rbind, lapply(intervals, function(interval) {
+    data.frame(time = interval, change = c(1L, -1L))
+  }))
+  max(cumsum(events$change[order(events$time)]))
+}

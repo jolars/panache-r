@@ -54,6 +54,74 @@ test_that("file-based formatters receive a temporary file", {
   expect_identical(format_text("```r\nx<-1\n```\n"), "```r\nx<-2\n```\n")
 })
 
+test_that("external formatting respects check-time and configured limits", {
+  withr::local_envvar(c(`_R_CHECK_LIMIT_CORES_` = "true", OMP_THREAD_LIMIT = NA))
+  expect_lte(external_formatter_peak(8L), 2L)
+  expect_lte(external_formatter_peak(1L), 1L)
+})
+
+test_that("external formatting honors OMP_THREAD_LIMIT", {
+  withr::local_envvar(c(`_R_CHECK_LIMIT_CORES_` = NA, OMP_THREAD_LIMIT = "1"))
+  expect_lte(external_formatter_peak(8L), 1L)
+})
+
+test_that("external formatting retains configured concurrency outside checks", {
+  skip_on_cran()
+  withr::local_envvar(c(`_R_CHECK_LIMIT_CORES_` = NA, OMP_THREAD_LIMIT = NA))
+  expect_gt(external_formatter_peak(4L), 2L)
+})
+
+test_that("formatter placeholders work for stdin and temporary files", {
+  for (stdin in c(TRUE, FALSE)) {
+    local_panache_project(c(
+      "[formatters]",
+      'py = "worker"',
+      formatter_definition(
+        "worker",
+        c(
+          'args <- commandArgs(TRUE)',
+          'stopifnot(args[[2L]] == "python", args[[3L]] == "py")',
+          'if (args[[4L]] == "TRUE") {',
+          '  stopifnot(args[[1L]] == "stdin.py")',
+          '  cat("x=2\\n")',
+          '} else {',
+          '  stopifnot(tools::file_ext(args[[1L]]) == "py")',
+          '  writeLines("x=2", args[[1L]])',
+          '}'
+        ),
+        stdin = stdin,
+        args = c("{}", "{lang}", "{ext}", as.character(stdin))
+      )
+    ))
+    expect_identical(format_text("```python\nx=1\n```\n"), "```python\nx=2\n```\n")
+  }
+})
+
+test_that("duplicate formatter input runs once and retains each chunk's options", {
+  calls <- withr::local_tempfile()
+  local_panache_project(c(
+    "[formatters]",
+    'r = "worker"',
+    formatter_definition(
+      "worker",
+      c(
+        'cat("called\\n", file = commandArgs(TRUE)[[1L]], append = TRUE)',
+        'cat("x=2\\n")'
+      ),
+      args = calls
+    )
+  ))
+  input <- paste0(
+    "```{r}\n#| echo: false\n\nx=1\n```\n\n",
+    "```{r}\n#| echo: true\n\nx=1\n```\n"
+  )
+  expect_identical(
+    format_text(input, flavor = "quarto"),
+    gsub("x=1", "x=2", input, fixed = TRUE)
+  )
+  expect_identical(readLines(calls), "called")
+})
+
 test_that("an empty R formatter chain disables the built-in default", {
   local_panache_project(c('[formatters]', 'r = []'))
   input <- "```{r}\nx<-1\n```\n"

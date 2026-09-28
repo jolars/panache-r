@@ -794,6 +794,8 @@ dependencies = [
  "panache",
  "panache-formatter",
  "panache-parser",
+ "rayon",
+ "tempfile",
  "toml",
 ]
 
