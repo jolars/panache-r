@@ -9,11 +9,9 @@ Authors@R:
       role = c("aut", "cre", "cph"),
       comment = c(ORCID = "0000-0002-4029-5945")
     )
-Description: Format Markdown, Quarto, and R Markdown documents with the
-    'Panache' formatter. The formatting engine is implemented in Rust and is
-    compiled from source when the package is installed. Functions are provided
-    for formatting character strings and files, together with addins for
-    formatting documents open in the 'RStudio' integrated development
+Description: Format documents with the 'Panache' formatter. Functions are
+    provided for formatting character strings and files, together with addins
+    for formatting documents open in the 'RStudio' integrated development
     environment. R code chunks use 'arity' by default, and external code
     formatters can be configured through R lists or 'Panache' configuration
     files.
@@ -29,9 +27,9 @@ Suggests:
     testthat (>= 3.2.0),
     withr
 Config/rextendr/version: 0.5.0
+Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
 Encoding: UTF-8
 Language: en-US
 Roxygen: list(markdown = TRUE)
 SystemRequirements: Cargo (Rust's package manager), rustc >= 1.89.0
-Config/roxygen2/version: 8.0.0
