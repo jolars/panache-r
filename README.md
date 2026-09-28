@@ -2,7 +2,7 @@
 
 <!-- badges: start -->
 [![CRAN
-status](https://www.r-pkg.org/badges/version/panache)](https://CRAN.R-project.org/package=panach e)
+status](https://www.r-pkg.org/badges/version/panache)](https://CRAN.R-project.org/package=panache)
 <!-- badges: end -->
 
 The **panache** R package formats Markdown, Quarto, and R Markdown documents
