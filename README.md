@@ -1,5 +1,10 @@
 # panache
 
+<!-- badges: start -->
+[![CRAN
+status](https://www.r-pkg.org/badges/version/panache)](https://CRAN.R-project.org/package=panach e)
+<!-- badges: end -->
+
 The **panache** R package formats Markdown, Quarto, and R Markdown documents
 with Panache's Rust formatting engine.
 
