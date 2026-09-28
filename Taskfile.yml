@@ -37,6 +37,12 @@ tasks:
     cmds:
       - R CMD build --no-manual .
 
+  website:
+    desc: Build the pkgdown website in docs/
+    deps: [document]
+    cmds:
+      - Rscript -e 'pkgdown::build_site(preview = FALSE)'
+
   install:
     desc: Install the R package
     cmds:

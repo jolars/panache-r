@@ -1,0 +1,16 @@
+url: https://jolars.github.io/panache-r/
+
+template:
+  bootstrap: 5
+
+reference:
+  - title: Format documents
+  - contents:
+      - format_text
+      - format_file
+  - title: RStudio addins
+  - contents:
+      - format_document_addin
+  - title: Engine information
+  - contents:
+      - panache_engine_version

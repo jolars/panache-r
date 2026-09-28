@@ -16,7 +16,8 @@ Description: Format documents with the 'Panache' formatter. Functions are
     formatters can be configured through R lists or 'Panache' configuration
     files.
 License: MIT + file LICENSE
-URL: https://github.com/jolars/panache-r, https://panache.bz
+URL: https://jolars.github.io/panache-r/, https://github.com/jolars/panache-r,
+    https://panache.bz
 BugReports: https://github.com/jolars/panache-r/issues
 Depends:
     R (>= 4.2)

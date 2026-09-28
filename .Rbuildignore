@@ -19,3 +19,6 @@
 ^\.versionary-manifest\.json\.d$
 ^AGENTS\.md$
 ^CLAUDE\.md$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

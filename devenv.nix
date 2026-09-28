@@ -12,6 +12,7 @@
     pkgs.cargo-msrv
     pkgs.go-task
     pkgs.llvmPackages.bintools
+    pkgs.pandoc
   ];
 
   languages = {
@@ -29,6 +30,7 @@
             covr
             devtools
             knitr
+            pkgdown
             rextendr
             rmarkdown
             roxygen2

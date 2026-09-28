@@ -7,6 +7,22 @@ The package is in early development. It currently provides an in-process R
 interface and RStudio addins for formatting a complete document or the selected
 block range.
 
+See the [package website](https://jolars.github.io/panache-r/) for the function
+reference.
+
+## Installation
+
+Install the development version from GitHub:
+
+```r
+remotes::install_github("jolars/panache-r")
+```
+
+Installing from source requires Cargo and Rust 1.89 or newer. CRAN source
+tarballs include vendored Rust dependencies and build without network access.
+
+## Usage
+
 R code chunks and fenced R code blocks default to the
 [arity R package](https://cran.r-project.org/package=arity), which is installed
 automatically as a dependency. No separate arity executable is needed.
@@ -34,6 +50,8 @@ panache::format_text(
 Formatting arguments correspond to settings under `[format]` in TOML.
 `formatters`, `extensions`, `compat`, and `flavors` correspond to the
 respective TOML sections. List option names accept underscores or hyphens.
+
+## Configuration
 
 You can also use the same `panache.toml` configuration as the Panache CLI.
 For example, use the arity CLI for R and Ruff for Python:
@@ -93,6 +111,16 @@ panache::format_text(
 )
 ```
 
+Earlier development versions accepted lists or `FALSE` as `config`. Move list
+settings to their named arguments and replace `config = FALSE` with
+`isolated = TRUE`. Named overrides retain project settings by default; use
+isolation when a call should depend only on its arguments and engine defaults.
+
+## RStudio addins
+
+Choose **Format with Panache** or **Format Selection with Panache** from
+RStudio's **Addins** menu to format the active document or selected blocks.
+
 Both addins accept a `config` path and default to the `panache.config` R option.
 Set it in your R session or `.Rprofile` to select a file for the addin menu
 commands:
@@ -107,10 +135,7 @@ When called from R, addins also accept `isolated` and named formatting overrides
 panache::format_document_addin(line_width = 100, formatters = list(r = "air"))
 ```
 
-Earlier development versions accepted lists or `FALSE` as `config`. Move list
-settings to their named arguments and replace `config = FALSE` with
-`isolated = TRUE`. Named overrides retain project settings by default; use
-isolation when a call should depend only on its arguments and engine defaults.
+## Formatting behavior
 
 Chunk options and ignore regions are preserved, and selection formatting
 affects only the selected blocks. A missing or failing external formatter
@@ -121,5 +146,9 @@ terminated before formatting returns. Concurrency follows `external-max-parallel
 in the configuration. During CRAN checks, a nonempty `_R_CHECK_LIMIT_CORES_` caps
 it at two processes. A positive `OMP_THREAD_LIMIT` also limits concurrency.
 
-Installing from source requires Cargo and Rust 1.89 or newer. CRAN source
-tarballs include vendored Rust dependencies and build without network access.
+## Development
+
+Run `task website` in the devenv shell to build the package website in `docs/`.
+GitHub Actions builds the site for pull requests and deploys it to the `gh-pages`
+branch on pushes to `main`, published releases, or manual runs. GitHub Pages
+should serve the root of the `gh-pages` branch.

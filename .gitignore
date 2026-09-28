@@ -4,6 +4,7 @@
 .Rproj.user/
 /*.tar.gz
 /*.Rcheck/
+/docs/
 /src/.cargo/
 /src/Makevars
 /src/Makevars.win
