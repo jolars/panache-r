@@ -165,11 +165,3 @@ command. Timed-out processes are terminated before formatting returns.
 Concurrency follows `external-max-parallel` in the configuration. During
 CRAN checks, a nonempty `_R_CHECK_LIMIT_CORES_` caps it at two
 processes. A positive `OMP_THREAD_LIMIT` also limits concurrency.
-
-## Development
-
-Run `task website` in the devenv shell to build the package website in
-`docs/`. GitHub Actions builds the site for pull requests and deploys it
-to the `gh-pages` branch on pushes to `main`, published releases, or
-manual runs. GitHub Pages should serve the root of the `gh-pages`
-branch.
