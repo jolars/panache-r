@@ -23,8 +23,8 @@ tarballs include vendored Rust dependencies and build without network access.
 
 ## Usage
 
-R code chunks and fenced R code blocks default to the
-[arity R package](https://cran.r-project.org/package=arity), which is installed
+R code chunks and fenced R code blocks default to the [arity R
+package](https://cran.r-project.org/package=arity), which is installed
 automatically as a dependency. No separate arity executable is needed.
 
 ```r
@@ -34,8 +34,8 @@ panache::format_text(
 )
 ```
 
-Use named arguments for formatting settings and named lists for related
-sections such as external code formatters:
+Use named arguments for formatting settings and named lists for related sections
+such as external code formatters:
 
 ```r
 panache::format_text(
@@ -48,13 +48,13 @@ panache::format_text(
 ```
 
 Formatting arguments correspond to settings under `[format]` in TOML.
-`formatters`, `extensions`, `compat`, and `flavors` correspond to the
-respective TOML sections. List option names accept underscores or hyphens.
+`formatters`, `extensions`, `compat`, and `flavors` correspond to the respective
+TOML sections. List option names accept underscores or hyphens.
 
 ## Configuration
 
-You can also use the same `panache.toml` configuration as the Panache CLI.
-For example, use the arity CLI for R and Ruff for Python:
+You can also use the same `panache.toml` configuration as the Panache CLI. For
+example, use the arity CLI for R and Ruff for Python:
 
 ```toml
 [formatters]
@@ -63,10 +63,9 @@ python = "ruff"
 ```
 
 Set `r = "air"` to use Air, or `r = []` (`r = character()` in an R list) to
-preserve R code. Omitting the R
-mapping keeps the default arity R interface, even when other languages have
-configured formatters. The explicitly selected CLI programs must be installed
-and available on `PATH`.
+preserve R code. Omitting the R mapping keeps the default arity R interface,
+even when other languages have configured formatters. The explicitly selected
+CLI programs must be installed and available on `PATH`.
 
 Panache's presets, formatter chains, language aliases, and custom commands all
 work here. A custom formatter can read standard input or edit a temporary file:
@@ -83,9 +82,9 @@ stdin = false
 ```
 
 Both RStudio addins discover configuration from the active document's directory.
-`format_file()` does the same. `format_text()` searches from the
-working directory unless you supply a document `path`. Discovery, user
-configuration, `PANACHE_CONFIG`, and `extend` follow the Panache CLI.
+`format_file()` does the same. `format_text()` searches from the working
+directory unless you supply a document `path`. Discovery, user configuration,
+`PANACHE_CONFIG`, and `extend` follow the Panache CLI.
 
 The `config` argument selects a configuration file:
 
@@ -129,7 +128,8 @@ commands:
 options(panache.config = "~/config/panache.toml")
 ```
 
-When called from R, addins also accept `isolated` and named formatting overrides:
+When called from R, addins also accept `isolated` and named formatting
+overrides:
 
 ```r
 panache::format_document_addin(line_width = 100, formatters = list(r = "air"))
@@ -137,18 +137,12 @@ panache::format_document_addin(line_width = 100, formatters = list(r = "air"))
 
 ## Formatting behavior
 
-Chunk options and ignore regions are preserved, and selection formatting
-affects only the selected blocks. A missing or failing external formatter
-leaves the chunk's code intact. Invalid R code handled by the default arity R
-interface also produces an R warning. Inline code is not sent to formatters.
-External commands have a 30-second timeout per command. Timed-out processes are
-terminated before formatting returns. Concurrency follows `external-max-parallel`
-in the configuration. During CRAN checks, a nonempty `_R_CHECK_LIMIT_CORES_` caps
-it at two processes. A positive `OMP_THREAD_LIMIT` also limits concurrency.
-
-## Development
-
-Run `task website` in the devenv shell to build the package website in `docs/`.
-GitHub Actions builds the site for pull requests and deploys it to the `gh-pages`
-branch on pushes to `main`, published releases, or manual runs. GitHub Pages
-should serve the root of the `gh-pages` branch.
+Chunk options and ignore regions are preserved, and selection formatting affects
+only the selected blocks. A missing or failing external formatter leaves the
+chunk's code intact. Invalid R code handled by the default arity R interface
+also produces an R warning. Inline code is not sent to formatters. External
+commands have a 30-second timeout per command. Timed-out processes are
+terminated before formatting returns. Concurrency follows
+`external-max-parallel` in the configuration. During CRAN checks, a nonempty
+`_R_CHECK_LIMIT_CORES_` caps it at two processes. A positive `OMP_THREAD_LIMIT`
+also limits concurrency.
