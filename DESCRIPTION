@@ -9,12 +9,11 @@ Authors@R:
       role = c("aut", "cre", "cph"),
       comment = c(ORCID = "0000-0002-4029-5945")
     )
-Description: Format documents with the 'Panache' formatter. Functions are
-    provided for formatting character strings and files, together with addins
-    for formatting documents open in the 'RStudio' integrated development
-    environment. R code chunks use 'arity' by default, and external code
-    formatters can be configured through R lists or 'Panache' configuration
-    files.
+Description: Format documents with 'Panache'. Functions are provided for styling
+    character strings and files, together with plugins for formatting documents
+    open in the 'RStudio' integrated development environment. R code chunks use
+    'arity' by default, and external code formatting can be configured through R
+    lists or 'Panache' configuration files.
 License: MIT + file LICENSE
 URL: https://jolars.github.io/panache-r/, https://github.com/jolars/panache-r,
     https://panache.bz
