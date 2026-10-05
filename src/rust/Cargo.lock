@@ -632,15 +632,15 @@ dependencies = [
 
 [[package]]
 name = "lazy_static"
-version = "1.5.0"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
+checksum = "20870f649af7073d53e38067b2a84312175d56ea15217e1b15bc83506ec50afb"
 
 [[package]]
 name = "libc"
-version = "0.2.189"
+version = "0.2.190"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3eaf3ede3fee6db1a4c2ee091bf8a8b4dccdc6d17f656fb07896ee72867612f2"
+checksum = "ce5d3ddc6d3fa000eb1536d85e147bfe31aacaba692ed6a876f95cb7c855be78"
 
 [[package]]
 name = "libredox"
@@ -717,9 +717,9 @@ checksum = "04744f49eae99ab78e0d5c0b603ab218f515ea8cfe5a456d7629ad883a3b6e7d"
 
 [[package]]
 name = "panache"
-version = "3.12.0"
+version = "3.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00be0aad1b409ea406f1d9cc7999b36ce7f6adb3a4cf8e75ffc7e829334c8e06"
+checksum = "3c9068e0a1ed2c360e690a9e7f1bb46e9688bd768277b87ecfb502431661052d"
 dependencies = [
  "annotate-snippets",
  "clap",
@@ -753,9 +753,9 @@ dependencies = [
 
 [[package]]
 name = "panache-formatter"
-version = "0.25.0"
+version = "0.26.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d7a1b83e12dbf18dbdd69d4a1fe884aa50c9691d8838ab7ee2432ec96662b35e"
+checksum = "36581f9b5c6bbd09252e05eb37e6d3e1eb7330798c1a300a7c4bef8a16932a5f"
 dependencies = [
  "log",
  "panache-parser",
@@ -767,9 +767,9 @@ dependencies = [
 
 [[package]]
 name = "panache-parser"
-version = "0.30.0"
+version = "0.31.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb1b691563a50762b4bd00a41b485db660285197e532b8dbf8b4d04705a39f78"
+checksum = "b5b75403536071d7c854c15cef9201139370b0aec3a163272e2d2e715b34fa58"
 dependencies = [
  "entities",
  "log",
@@ -1418,9 +1418,9 @@ checksum = "06abde3611657adf66d383f00b093d7faecc7fa57071cce2578660c9f1010821"
 
 [[package]]
 name = "uuid"
-version = "1.26.1"
+version = "1.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ef6dac1e96601b4fb3acccccff2139741fcb757cb9a36089bf5be91cfb285ce"
+checksum = "97277d36b9c3ace13e58fa6e753f8b0bbbf302a18dd193240d70f9e29681059a"
 dependencies = [
  "getrandom",
  "js-sys",
@@ -1483,9 +1483,9 @@ dependencies = [
 
 [[package]]
 name = "wincode"
-version = "0.6.1"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bfc6339f1ba427bf7ad7c42403b28e524832ba2ddb5eef1bb2cc3b85db6b7b75"
+checksum = "1d4abae4bfc30e59d97d3ea4924e5c5e7fede946390bffbd52c076c081b87a6c"
 dependencies = [
  "pastey",
  "proc-macro2",
