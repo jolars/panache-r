@@ -40,6 +40,7 @@
             remotes
             rstudioapi
             testthat
+            rhub
           ];
         }
       );
