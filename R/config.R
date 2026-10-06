@@ -95,7 +95,8 @@ normalize_section <- function(value, name) {
           "args",
           "stdin",
           "prepend-args",
-          "append-args"
+          "append-args",
+          "code-style-args"
         )
         unknown <- setdiff(names(entry), fields)
         if (length(unknown)) {
@@ -133,7 +134,12 @@ normalize_config_value <- function(value, context, field = "", parent = "") {
       "extend-include",
       "crossref-prefixes"
     ) ||
-    parent %in% c("math-signatures", "flavors", "no-break-abbreviations") ||
+    parent %in% c(
+      "math-signatures",
+      "flavors",
+      "no-break-abbreviations",
+      "code-style-args"
+    ) ||
     (field == "no-break-abbreviations" && is.null(names(value)))
   if (array) {
     # Preserve array shape even when it contains zero or one element.

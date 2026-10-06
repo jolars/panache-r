@@ -108,6 +108,7 @@ mod tests {
             cmd: "Rscript".into(),
             args,
             stdin,
+            code_style_args: Default::default(),
         }
     }
 

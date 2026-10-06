@@ -60,8 +60,10 @@
 #' @param formatters Named list of language mappings and formatter definitions,
 #'   corresponding to `[formatters]` in TOML. Use `list(r = character())` to
 #'   preserve R code. Definitions can refer to presets or names from the loaded
-#'   configuration. The default arity R interface uses the resolved line width,
-#'   capped at 1000 columns.
+#'   configuration. A definition can use `code_style_args` to append arguments
+#'   from per-block `code-style` values, replacing `{value}` with the value. The
+#'   default arity R interface uses the resolved line width, capped at 1000
+#'   columns.
 #' @param extensions Named list of extension flags, optionally grouped by
 #'   flavor, corresponding to `[extensions]` in TOML.
 #' @param compat Named list of compatibility targets, corresponding to

@@ -83,8 +83,10 @@ an optional \code{default} entry.}
 \item{formatters}{Named list of language mappings and formatter definitions,
 corresponding to \verb{[formatters]} in TOML. Use \code{list(r = character())} to
 preserve R code. Definitions can refer to presets or names from the loaded
-configuration. The default arity R interface uses the resolved line width,
-capped at 1000 columns.}
+configuration. A definition can use \code{code_style_args} to append arguments
+from per-block \code{code-style} values, replacing \code{{value}} with the value. The
+default arity R interface uses the resolved line width, capped at 1000
+columns.}
 
 \item{extensions}{Named list of extension flags, optionally grouped by
 flavor, corresponding to \verb{[extensions]} in TOML.}
