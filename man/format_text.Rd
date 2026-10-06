@@ -113,8 +113,8 @@ still apply. Defaults to \code{FALSE}.}
 A character scalar containing the formatted document.
 }
 \description{
-\code{format_text()} formats a complete document held in a character scalar.
-Use \code{range} to restrict formatting to a one-indexed, inclusive line range;
+\code{format_text()} formats a complete document held in a character scalar. Use
+\code{range} to restrict formatting to a one-indexed, inclusive line range;
 Panache formats blocks overlapping that range. External code formatters use
 Panache's \verb{[formatters]} configuration, including presets, custom commands,
 and chains. When no R formatter is configured, R code chunks and fenced R
