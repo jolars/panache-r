@@ -11,13 +11,13 @@ Source:
 [`DESCRIPTION`](https://github.com/jolars/panache-r/blob/main/DESCRIPTION)
 
 Larsson J (2026). *panache: Format Markdown, Quarto, and R Markdown
-Documents*. R package version 0.0.0.9000,
+Documents*. R package version 0.1.0,
 <https://jolars.github.io/panache-r/>.
 
     @Manual{,
       title = {panache: Format Markdown, Quarto, and R Markdown Documents},
       author = {Johan Larsson},
       year = {2026},
-      note = {R package version 0.0.0.9000},
+      note = {R package version 0.1.0},
       url = {https://jolars.github.io/panache-r/},
     }
