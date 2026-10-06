@@ -1,7 +1,7 @@
 #' Format a document with Panache
 #'
-#' `format_text()` formats a complete document held in a character scalar.
-#' Use `range` to restrict formatting to a one-indexed, inclusive line range;
+#' `format_text()` formats a complete document held in a character scalar. Use
+#' `range` to restrict formatting to a one-indexed, inclusive line range;
 #' Panache formats blocks overlapping that range. External code formatters use
 #' Panache's `[formatters]` configuration, including presets, custom commands,
 #' and chains. When no R formatter is configured, R code chunks and fenced R

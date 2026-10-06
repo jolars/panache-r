@@ -160,7 +160,7 @@ normalize_config_value <- function(value, context, field = "", parent = "") {
     keys <- names(value)
     if (
       length(value) &&
-        (is.null(keys) || anyNA(keys) || (!dynamic && any(!nzchar(keys))))
+        (is.null(keys) || anyNA(keys) || (!dynamic && !all(nzchar(keys))))
     ) {
       stop("`", context, "` must be a named list.", call. = FALSE)
     }
