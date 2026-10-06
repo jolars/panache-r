@@ -184,7 +184,7 @@ normalize_config_value <- function(value, context, field = "", parent = "") {
   if (!is.character(value) && !is.logical(value) && !is.numeric(value)) {
     stop("Unsupported value in `", context, "`.", call. = FALSE)
   }
-  if (anyNA(value) || (is.numeric(value) && any(!is.finite(value)))) {
+  if (anyNA(value) || (is.numeric(value) && !all(is.finite(value)))) {
     stop(
       "`",
       context,
