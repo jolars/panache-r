@@ -157,8 +157,10 @@ an optional <code>default</code> entry.</p></dd>
 <dd><p>Named list of language mappings and formatter definitions,
 corresponding to <code>[formatters]</code> in TOML. Use <code>list(r = character())</code> to
 preserve R code. Definitions can refer to presets or names from the loaded
-configuration. The default arity R interface uses the resolved line width,
-capped at 1000 columns.</p></dd>
+configuration. A definition can use <code>code_style_args</code> to append arguments
+from per-block <code>code-style</code> values, replacing <code>{value}</code> with the value. The
+default arity R interface uses the resolved line width, capped at 1000
+columns.</p></dd>
 
 
 <dt id="arg-extensions">extensions<a class="anchor" aria-label="anchor" href="#arg-extensions"></a></dt>
