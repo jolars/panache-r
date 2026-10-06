@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::time::Duration;
 
 use panache_engine::config;
@@ -40,43 +40,60 @@ impl ExternalFormatters {
         if self.config.formatters.is_empty() || blocks.is_empty() {
             return FormattedCodeMap::new();
         }
-        let mut groups: HashMap<(String, String), Vec<ExternalCodeBlock>> = HashMap::new();
+        let mut groups: HashMap<
+            (String, String, BTreeMap<String, String>),
+            Vec<ExternalCodeBlock>,
+        > = HashMap::new();
         for block in blocks {
             groups
-                .entry((block.language.clone(), block.formatter_input.clone()))
+                .entry((
+                    block.language.clone(),
+                    block.formatter_input.clone(),
+                    block.code_style.clone(),
+                ))
                 .or_default()
                 .push(block);
         }
         let groups: Vec<_> = groups.into_iter().collect();
-        let format_group =
-            |((language, input), blocks): ((String, String), Vec<ExternalCodeBlock>)| {
-                let Some(chain) = resolve_formatters(&self.config.formatters, &language) else {
-                    return Vec::new();
-                };
-                if chain.is_empty() {
-                    return Vec::new();
-                }
-                let mut formatted = input;
-                for formatter in chain {
-                    if formatter.cmd.trim().is_empty() {
-                        continue;
-                    }
-                    match format_code(&formatted, &language, formatter, Duration::from_secs(30)) {
-                        Ok(output) => formatted = output,
-                        Err(_) => return Vec::new(),
-                    }
-                }
-                blocks
-                    .into_iter()
-                    .map(|block| {
-                        let output = match block.hashpipe_prefix {
-                            Some(prefix) => format!("{prefix}{formatted}"),
-                            None => formatted.clone(),
-                        };
-                        ((language.clone(), block.original), output)
-                    })
-                    .collect()
+        let format_group = |((language, input, code_style), blocks): (
+            (String, String, BTreeMap<String, String>),
+            Vec<ExternalCodeBlock>,
+        )| {
+            let Some(chain) = resolve_formatters(&self.config.formatters, &language) else {
+                return Vec::new();
             };
+            if chain.is_empty() {
+                return Vec::new();
+            }
+            let mut formatted = input;
+            for formatter in chain {
+                if formatter.cmd.trim().is_empty() {
+                    continue;
+                }
+                let mut formatter = formatter.clone();
+                for (key, value) in &code_style {
+                    if let Some(args) = formatter.code_style_args.get(key) {
+                        formatter
+                            .args
+                            .extend(args.iter().map(|arg| arg.replace("{value}", value)));
+                    }
+                }
+                match format_code(&formatted, &language, &formatter, Duration::from_secs(30)) {
+                    Ok(output) => formatted = output,
+                    Err(_) => return Vec::new(),
+                }
+            }
+            blocks
+                .into_iter()
+                .map(|block| {
+                    let output = match block.hashpipe_prefix {
+                        Some(prefix) => format!("{prefix}{formatted}"),
+                        None => formatted.clone(),
+                    };
+                    (block.offset, output)
+                })
+                .collect()
+        };
 
         let mut workers = self.config.external_max_parallel.max(1);
         // Rayon does not honor R's check limits or OpenMP's thread limit, so

@@ -122,6 +122,73 @@ test_that("duplicate formatter input runs once and retains each chunk's options"
   expect_identical(readLines(calls), "called")
 })
 
+test_that("code-style arguments distinguish identical formatter inputs", {
+  local_panache_project(c(
+    "[formatters]",
+    'r = "worker"',
+    formatter_definition(
+      "worker",
+      'cat("x=", commandArgs(TRUE)[[2L]], "\\n", sep = "")'
+    ),
+    'code-style-args = { line-width = ["--width", "{value}"] }'
+  ))
+  input <- paste0(
+    "```{r}\n#| code-style: {line-width: 40}\n\nx=1\n```\n\n",
+    "```{r}\n#| code-style: {line-width: 80}\n\nx=1\n```\n"
+  )
+  expected <- paste0(
+    "```{r}\n#| code-style: { line-width: 40 }\n\nx=40\n```\n\n",
+    "```{r}\n#| code-style: { line-width: 80 }\n\nx=80\n```\n"
+  )
+  expect_identical(format_text(input, flavor = "quarto"), expected)
+})
+
+test_that("document code-style defaults reach external formatters", {
+  local_panache_project(c(
+    "[formatters]",
+    'r = "worker"',
+    formatter_definition(
+      "worker",
+      'cat("x=", commandArgs(TRUE)[[2L]], "\\n", sep = "")'
+    ),
+    'code-style-args = { line-width = ["--width", "{value}"] }'
+  ))
+  input <- paste0(
+    "---\ncode-style: {line-width: 40}\n---\n\n",
+    "```{r}\nx=1\n```\n\n",
+    "```{r}\n#| code-style: {line-width: 80}\n\nx=1\n```\n"
+  )
+  output <- format_text(input, flavor = "quarto")
+  expect_match(output, "x=40\n", fixed = TRUE)
+  expect_match(output, "x=80\n", fixed = TRUE)
+  expect_false(grepl("x=1\n", output, fixed = TRUE))
+})
+
+test_that("named R overrides accept code-style arguments", {
+  script <- withr::local_tempfile(fileext = ".R")
+  writeLines('cat("x=", commandArgs(TRUE)[[2L]], "\\n", sep = "")', script)
+  command <- file.path(
+    R.home("bin"),
+    if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript"
+  )
+  input <- "```{r}\n#| code-style: {line-width: 40}\n\nx=1\n```\n"
+  output <- format_text(
+    input,
+    flavor = "quarto",
+    isolated = TRUE,
+    formatters = list(
+      r = "worker",
+      worker = list(
+        cmd = command,
+        args = c("--vanilla", script),
+        stdin = TRUE,
+        code_style_args = list(line_width = c("--width", "{value}"))
+      )
+    )
+  )
+  expect_match(output, "x=40\n", fixed = TRUE)
+})
+
 test_that("an empty R formatter chain disables the built-in default", {
   local_panache_project(c('[formatters]', 'r = []'))
   input <- "```{r}\nx<-1\n```\n"

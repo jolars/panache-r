@@ -53,7 +53,7 @@ test_that("range formatting preserves unselected blocks", {
 
 test_that("the engine version is reported", {
   local_panache_project()
-  expect_identical(panache_engine_version(), "0.25.0")
+  expect_identical(panache_engine_version(), "0.26.1")
 })
 
 test_that("files are written only when formatting changes them", {

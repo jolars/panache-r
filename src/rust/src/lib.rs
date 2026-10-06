@@ -3,6 +3,7 @@ use panache_formatter::config::Flavor;
 use panache_formatter::directives::{DirectiveTracker, extract_directive_from_node};
 use panache_formatter::syntax::{SyntaxKind, SyntaxNode};
 use panache_formatter::{Config, FormattedCodeMap};
+use std::collections::HashSet;
 
 mod config;
 mod external;
@@ -125,7 +126,7 @@ fn collect_formattable_blocks(
     config: &Config,
     range: Option<(usize, usize)>,
 ) -> Vec<panache_formatter::ExternalCodeBlock> {
-    let mut blocks = Vec::new();
+    let mut offsets = HashSet::new();
     let mut directives = DirectiveTracker::new();
     for node in tree.descendants() {
         if let Some(directive) = extract_directive_from_node(&node) {
@@ -153,10 +154,13 @@ fn collect_formattable_blocks(
         {
             continue;
         }
-        // Collect each block separately so chunk options belong to this occurrence.
-        blocks.extend(panache_formatter::collect_code_blocks(&node, text, config));
+        offsets.insert(start);
     }
-    blocks
+    // Collect from the root so document-level code-style settings reach each block.
+    panache_formatter::collect_code_blocks(tree, text, config)
+        .into_iter()
+        .filter(|block| offsets.contains(&block.offset))
+        .collect()
 }
 
 fn format_r_code_blocks(
@@ -173,7 +177,7 @@ fn format_r_code_blocks(
             Some(prefix) => format!("{prefix}{code}"),
             None => code,
         };
-        formatted.insert((block.language, block.original), code);
+        formatted.insert(block.offset, code);
     }
     Ok(formatted)
 }
@@ -196,6 +200,7 @@ mod tests {
         let tree = panache_parser::parse(text, Some(config.parser_options()));
         let mut inputs = Vec::new();
         let blocks = collect_formattable_blocks(&tree, text, &config, None);
+        let offset = blocks[0].offset;
         let formatted = format_r_code_blocks(blocks, |code| {
             inputs.push(code.to_string());
             Ok("x <- 1\n".to_string())
@@ -204,10 +209,24 @@ mod tests {
 
         assert_eq!(inputs, ["x<-1\n"]);
         assert_eq!(formatted.len(), 1);
-        assert_eq!(
-            formatted[&("r".to_string(), "#| echo: false\nx<-1\n".to_string())],
-            "#| echo: false\nx <- 1\n"
-        );
+        assert_eq!(formatted[&offset], "#| echo: false\nx <- 1\n");
+    }
+
+    #[test]
+    fn repeated_r_code_keeps_separate_block_offsets() {
+        let text = "```r\nx<-1\n```\n\n```r\nx<-1\n```\n";
+        let config = Config::default();
+        let tree = panache_parser::parse(text, Some(config.parser_options()));
+        let blocks = collect_formattable_blocks(&tree, text, &config, None);
+        let offsets: Vec<_> = blocks.iter().map(|block| block.offset).collect();
+
+        let formatted = format_r_code_blocks(blocks, |_| Ok("x <- 1\n".to_string())).unwrap();
+
+        assert_eq!(formatted.len(), 2);
+        assert_ne!(offsets[0], offsets[1]);
+        for offset in offsets {
+            assert_eq!(formatted[&offset], "x <- 1\n");
+        }
     }
 
     #[test]
@@ -255,7 +274,7 @@ mod tests {
 
 #[extendr]
 fn rust_engine_version() -> &'static str {
-    "0.25.0"
+    "0.26.1"
 }
 
 extendr_module! {
