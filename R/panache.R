@@ -218,7 +218,7 @@ format_text <- function(
 #'
 #' The file is replaced only when formatting changes its contents.
 #'
-#' @param path Path to a UTF-8 Markdown, Quarto, or R Markdown document.
+#' @param path Path to a UTF-8 Quarto or other Markdown document.
 #' @inheritParams format_text
 #' @inherit format_text details
 #'

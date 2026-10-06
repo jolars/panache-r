@@ -5,8 +5,8 @@
 status](https://www.r-pkg.org/badges/version/panache)](https://CRAN.R-project.org/package=panache)
 <!-- badges: end -->
 
-The **panache** R package formats Markdown, Quarto, and R Markdown documents
-with Panache's Rust formatting engine.
+The **panache** R package formats Quarto and other Markdown flavors with
+Panache's Rust formatting engine.
 
 The package is in early development. It currently provides an in-process R
 interface and RStudio addins for formatting a complete document or the selected

@@ -30,7 +30,7 @@ format_file(
 )
 }
 \arguments{
-\item{path}{Path to a UTF-8 Markdown, Quarto, or R Markdown document.}
+\item{path}{Path to a UTF-8 Quarto or other Markdown document.}
 
 \item{flavor}{The Markdown flavor, or \code{NULL} to use configuration and path
 detection (falling back to \code{"pandoc"}). One of \code{"pandoc"}, \code{"quarto"},

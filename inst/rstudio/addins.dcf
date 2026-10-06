@@ -1,5 +1,5 @@
 Name: Format with Panache
-Description: Format the active Markdown, Quarto, or R Markdown document.
+Description: Format the active Quarto or other Markdown document.
 Binding: format_document_addin
 Interactive: false
 
