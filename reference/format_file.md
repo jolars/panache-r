@@ -35,7 +35,7 @@ format_file(
 
 - path:
 
-  Path to a UTF-8 Markdown, Quarto, or R Markdown document.
+  Path to a UTF-8 Quarto or other Markdown document.
 
 - flavor:
 
