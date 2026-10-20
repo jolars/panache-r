@@ -127,20 +127,20 @@ test_that("R chunk formatting preserves Unicode and CRLF line endings", {
 
 test_that("file formatting supports R chunks", {
   local_panache_project()
-  path <- tempfile(fileext = ".Rmd")
-  on.exit(unlink(path))
+  path <- withr::local_tempfile(fileext = ".Rmd")
   input <- "```{r}\nx<-1\n```\n"
   writeBin(charToRaw(input), path)
 
-  expect_true(format_file(path))
+  result <- withVisible(format_file(path))
+  expect_false(result$visible)
+  expect_true(result$value)
   expect_identical(readLines(path), c("```{r}", "x <- 1", "```"))
   expect_false(format_file(path))
 })
 
 test_that("treating formatting warnings as errors leaves files intact", {
   local_panache_project()
-  path <- tempfile(fileext = ".qmd")
-  on.exit(unlink(path))
+  path <- withr::local_tempfile(fileext = ".qmd")
   input <- "```{r}\nx<-\n```\n"
   writeBin(charToRaw(input), path)
   old_options <- options(warn = 2L)

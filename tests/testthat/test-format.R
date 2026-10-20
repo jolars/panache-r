@@ -56,10 +56,13 @@ test_that("the engine version is reported", {
   expect_identical(panache_engine_version(), "0.26.1")
 })
 
+test_that("file formatting requires an explicit path", {
+  expect_error(format_file(), '"path" is missing')
+})
+
 test_that("files are written only when formatting changes them", {
   local_panache_project()
-  path <- tempfile(fileext = ".qmd")
-  on.exit(unlink(path))
+  path <- withr::local_tempfile(fileext = ".qmd")
   writeChar("# Heading\n", path, eos = NULL, useBytes = TRUE)
 
   stamp <- file.info(path)$mtime
@@ -75,8 +78,7 @@ test_that("file errors are reported without modifying input", {
   missing <- tempfile(fileext = ".md")
   expect_error(format_file(missing), "does not exist")
 
-  path <- tempfile(fileext = ".md")
-  on.exit(unlink(path), add = TRUE)
+  path <- withr::local_tempfile(fileext = ".md")
   bytes <- as.raw(c(0xff, 0xfe))
   writeBin(bytes, path)
 

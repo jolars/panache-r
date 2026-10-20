@@ -14,7 +14,8 @@ rust_format_document <- function(
   config_path,
   document_path,
   isolated,
-  overrides
+  overrides,
+  temp_dir
 ) {
   .Call(
     wrap__rust_format_document,
@@ -26,7 +27,8 @@ rust_format_document <- function(
     config_path,
     document_path,
     isolated,
-    overrides
+    overrides,
+    temp_dir
   )
 }
 

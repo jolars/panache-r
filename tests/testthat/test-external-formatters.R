@@ -54,6 +54,43 @@ test_that("file-based formatters receive a temporary file", {
   expect_identical(format_text("```r\nx<-1\n```\n"), "```r\nx<-2\n```\n")
 })
 
+test_that("external formatters use and clean R's session temporary directory", {
+  root <- normalizePath(tempdir(), winslash = "/")
+  for (stdin in c(TRUE, FALSE)) {
+    record <- withr::local_tempfile(fileext = ".rds")
+    local_panache_project(c(
+      "[formatters]",
+      'r = "custom"',
+      formatter_definition(
+        "custom",
+        c(
+          'args <- commandArgs(TRUE)',
+          'normalize <- function(path) normalizePath(path, winslash = "/")',
+          'input <- if (args[[3L]] == "TRUE") args[[1L]] else normalize(args[[1L]])',
+          'saveRDS(list(input = input, tempdir = normalize(tempdir()),',
+          '             env = Sys.getenv(c("TMPDIR", "TMP", "TEMP")),',
+          '             scratch = normalize(Sys.getenv("TMPDIR"))), args[[2L]])',
+          'if (args[[3L]] == "TRUE") cat("x=2\\n") else writeLines("x=2", args[[1L]])'
+        ),
+        stdin = stdin,
+        args = c("{}", record, as.character(stdin))
+      )
+    ))
+
+    expect_identical(format_text("```r\nx=1\n```\n"), "```r\nx=2\n```\n")
+    paths <- readRDS(record)
+    scratch <- paths$scratch
+    expect_identical(dirname(scratch), root)
+    expect_true(all(paths$env == paths$env[["TMPDIR"]]))
+    expect_identical(dirname(paths$tempdir), scratch)
+    if (!stdin) {
+      expect_identical(dirname(paths$input), scratch)
+      expect_false(file.exists(paths$input))
+    }
+    expect_false(dir.exists(scratch))
+  }
+})
+
 test_that("external formatting respects check-time and configured limits", {
   withr::local_envvar(c(`_R_CHECK_LIMIT_CORES_` = "true", OMP_THREAD_LIMIT = NA))
   expect_lte(external_formatter_peak(8L), 2L)
@@ -197,7 +234,7 @@ test_that("an empty R formatter chain disables the built-in default", {
 
 test_that("file formatting discovers configuration relative to the document", {
   project <- local_panache_project(c('[formatters]', 'r = []'))
-  dir.create("documents")
+  dir.create(file.path(project, "documents"))
   path <- file.path(project, "documents", "test.Rmd")
   writeLines(c("```{r}", "x<-1", "```"), path)
   withr::local_dir(tempdir())
@@ -219,8 +256,12 @@ test_that("explicit configuration and isolated formatting override discovery", {
 })
 
 test_that("extended formatter configurations preserve an explicit R opt-out", {
-  local_panache_project(c('extend = "base.toml"', '[formatters]', 'r = []'))
-  writeLines(c('[formatters]', 'r = "arity"'), "base.toml")
+  project <- local_panache_project(c(
+    'extend = "base.toml"',
+    '[formatters]',
+    'r = []'
+  ))
+  writeLines(c('[formatters]', 'r = "arity"'), file.path(project, "base.toml"))
   input <- "```r\nx<-1\n```\n"
   expect_identical(format_text(input), input)
 })

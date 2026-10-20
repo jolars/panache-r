@@ -13,9 +13,10 @@ formatter_definition <- function(
   name,
   script,
   stdin = TRUE,
-  args = character()
+  args = character(),
+  .local_envir = parent.frame()
 ) {
-  path <- tempfile(fileext = ".R")
+  path <- withr::local_tempfile(fileext = ".R", .local_envir = .local_envir)
   writeLines(script, path)
   command <- file.path(
     R.home("bin"),

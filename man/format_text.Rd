@@ -141,6 +141,6 @@ inherited arrays, except for the pattern-based \code{flavors} merge. Empty group
 lists make no changes. List option names accept underscores or hyphens.
 }
 \examples{
-format_text("# Heading\n\nSome text.\n", flavor = "quarto")
+format_text("# Heading\n\nSome text.\n", flavor = "quarto", isolated = TRUE)
 format_text("A short paragraph.\n", line_width = 60, isolated = TRUE)
 }

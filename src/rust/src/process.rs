@@ -1,4 +1,5 @@
 use std::fs::{self, File};
+use std::path::Path;
 use std::process::{Child, Command, ExitStatus, Stdio};
 use std::time::{Duration, Instant};
 
@@ -10,8 +11,12 @@ pub fn format_code(
     language: &str,
     config: &FormatterConfig,
     timeout: Duration,
+    temp_dir: &Path,
 ) -> Result<String, FormatterError> {
-    let dir = tempfile::Builder::new().prefix("panache-").tempdir()?;
+    // R's session directory can differ from the system temporary directory.
+    let dir = tempfile::Builder::new()
+        .prefix("panache-")
+        .tempdir_in(temp_dir)?;
     let extension = crate::external::language_extension(language);
     let filename = format!("stdin.{extension}");
     let input = dir.path().join(&filename);
@@ -42,6 +47,9 @@ pub fn format_code(
     let mut command = Command::new(&config.cmd);
     command
         .args(args)
+        .env("TMPDIR", dir.path())
+        .env("TMP", dir.path())
+        .env("TEMP", dir.path())
         .stdin(if config.stdin {
             Stdio::from(File::open(&input)?)
         } else {
@@ -98,7 +106,6 @@ impl Drop for RunningChild {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::Path;
     use std::time::Instant;
 
     fn r_formatter(script: &str, paths: &[&Path], stdin: bool) -> FormatterConfig {
@@ -125,7 +132,7 @@ mod tests {
                 &[&started, &finished],
                 stdin,
             );
-            let result = format_code("x=1\n", "r", &config, Duration::from_secs(1));
+            let result = format_code("x=1\n", "r", &config, Duration::from_secs(1), dir.path());
             // The child would leave this marker if it survived the timeout.
             std::thread::sleep(Duration::from_millis(2500));
             assert!(started.exists(), "the test formatter never started");
@@ -143,6 +150,7 @@ mod tests {
 
     #[test]
     fn timeout_includes_a_formatter_that_does_not_read_stdin() {
+        let dir = tempfile::tempdir().unwrap();
         let config = r_formatter("Sys.sleep(2); readLines(file('stdin'))", &[], true);
         let start = Instant::now();
         let result = format_code(
@@ -150,6 +158,7 @@ mod tests {
             "r",
             &config,
             Duration::from_millis(500),
+            dir.path(),
         );
         assert!(matches!(result, Err(FormatterError::Timeout)));
         assert!(start.elapsed() < Duration::from_millis(1500));
@@ -157,16 +166,32 @@ mod tests {
 
     #[test]
     fn stdin_and_output_larger_than_pipe_buffers_do_not_deadlock() {
+        let dir = tempfile::tempdir().unwrap();
         let code = "x\n".repeat(100_000);
         let config = r_formatter(
             "cat(strrep('y', 100000)); cat(paste(readLines(file('stdin')), collapse = '\\n'))",
             &[],
             true,
         );
-        let result = format_code(&code, "r", &config, Duration::from_secs(5)).unwrap();
+        let result = format_code(&code, "r", &config, Duration::from_secs(5), dir.path()).unwrap();
         assert_eq!(
             result,
             format!("{}{}", "y".repeat(100_000), code.trim_end())
         );
+        assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 0);
+    }
+
+    #[test]
+    fn scratch_files_are_removed_when_a_formatter_fails_to_run() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut config = r_formatter("quit(status = 1L)", &[], true);
+        let result = format_code("x=1\n", "r", &config, Duration::from_secs(5), dir.path());
+        assert!(matches!(result, Err(FormatterError::NonZeroExit { .. })));
+        assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 0);
+
+        config.cmd = "panache-test-formatter-does-not-exist".into();
+        let result = format_code("x=1\n", "r", &config, Duration::from_secs(5), dir.path());
+        assert!(matches!(result, Err(FormatterError::SpawnFailed(_))));
+        assert_eq!(fs::read_dir(dir.path()).unwrap().count(), 0);
     }
 }

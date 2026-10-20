@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, HashMap};
+use std::path::Path;
 use std::time::Duration;
 
 use panache_engine::config;
@@ -36,7 +37,7 @@ impl ExternalFormatters {
         self.config.parser_options()
     }
 
-    pub fn format(&self, blocks: Vec<ExternalCodeBlock>) -> FormattedCodeMap {
+    pub fn format(&self, blocks: Vec<ExternalCodeBlock>, temp_dir: &Path) -> FormattedCodeMap {
         if self.config.formatters.is_empty() || blocks.is_empty() {
             return FormattedCodeMap::new();
         }
@@ -78,7 +79,13 @@ impl ExternalFormatters {
                             .extend(args.iter().map(|arg| arg.replace("{value}", value)));
                     }
                 }
-                match format_code(&formatted, &language, &formatter, Duration::from_secs(30)) {
+                match format_code(
+                    &formatted,
+                    &language,
+                    &formatter,
+                    Duration::from_secs(30),
+                    temp_dir,
+                ) {
                     Ok(output) => formatted = output,
                     Err(_) => return Vec::new(),
                 }

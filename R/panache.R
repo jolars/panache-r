@@ -89,7 +89,7 @@
 #' @export
 #'
 #' @examples
-#' format_text("# Heading\n\nSome text.\n", flavor = "quarto")
+#' format_text("# Heading\n\nSome text.\n", flavor = "quarto", isolated = TRUE)
 #' format_text("A short paragraph.\n", line_width = 60, isolated = TRUE)
 format_text <- function(
   text,
@@ -205,7 +205,8 @@ format_text <- function(
     config,
     path,
     isolated,
-    overrides
+    overrides,
+    tempdir()
   ))
   # Signal warnings here so callers can handle them outside the Rust callback.
   for (problem in problems) {
@@ -224,6 +225,12 @@ format_text <- function(
 #'
 #' @return Invisibly, `TRUE` if the file changed and `FALSE` otherwise.
 #' @export
+#'
+#' @examples
+#' path <- tempfile(fileext = ".qmd")
+#' writeLines(c("# Heading", "", "Some text."), path)
+#' format_file(path, isolated = TRUE)
+#' unlink(path)
 format_file <- function(
   path,
   flavor = NULL,

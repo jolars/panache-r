@@ -165,7 +165,7 @@ test_that("explicit flavor overrides configuration and the document path", {
 })
 
 test_that("overrides preserve extended settings and formatter definitions", {
-  local_panache_project(c(
+  project <- local_panache_project(c(
     'extend = "base.toml"',
     '[format]',
     'line-width = 20'
@@ -179,7 +179,7 @@ test_that("overrides preserve extended settings and formatter definitions", {
       'r = []',
       formatter_definition("custom", 'cat("x=2\\n")')
     ),
-    "base.toml"
+    file.path(project, "base.toml")
   )
   input <- "First sentence. Second sentence.\n\n```r\nx<-1\n```\n"
   output <- format_text(input, line_width = 100)
@@ -309,8 +309,8 @@ test_that(
       '[flavors]',
       'gfm = ["docs/*.md", "README.md"]'
     ))
-    dir.create("docs")
-    dir.create("other")
+    dir.create(file.path(project, "docs"))
+    dir.create(file.path(project, "other"))
     input <- "::: note\nSome text.\n:::\n"
     overrides <- list(commonmark = "README.md", quarto = "other/*.md")
     expect_identical(
@@ -402,7 +402,7 @@ test_that("adding flavor patterns preserves absolute inherited patterns", {
       "[flavors]",
       paste0("commonmark = [", encodeString(pattern, quote = '"'), "]")
     ),
-    "panache.toml"
+    file.path(project, "panache.toml")
   )
   input <- "::: note\nSome text.\n:::\n"
   expect_identical(

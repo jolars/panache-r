@@ -35,6 +35,7 @@ fn rust_format_document(
     document_path: Nullable<String>,
     isolated: bool,
     overrides: List,
+    temp_dir: &str,
 ) -> extendr_api::Result<String> {
     let flavor = flavor
         .into_option()
@@ -76,7 +77,7 @@ fn rust_format_document(
         })
         .transpose()?;
     let blocks = collect_formattable_blocks(&tree, text, &config, byte_range);
-    let mut formatted_code = external.format(blocks.clone());
+    let mut formatted_code = external.format(blocks.clone(), std::path::Path::new(temp_dir));
     if external.use_builtin_r
         && let Nullable::NotNull(formatter) = r_formatter
     {
