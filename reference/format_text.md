@@ -193,7 +193,7 @@ underscores or hyphens.
 ## Examples
 
 ``` r
-format_text("# Heading\n\nSome text.\n", flavor = "quarto")
+format_text("# Heading\n\nSome text.\n", flavor = "quarto", isolated = TRUE)
 #> [1] "# Heading\n\nSome text.\n"
 format_text("A short paragraph.\n", line_width = 60, isolated = TRUE)
 #> [1] "A short paragraph.\n"

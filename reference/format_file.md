@@ -173,3 +173,12 @@ arguments merge supplied entries, preserving unspecified settings;
 arrays replace inherited arrays, except for the pattern-based `flavors`
 merge. Empty grouped lists make no changes. List option names accept
 underscores or hyphens.
+
+## Examples
+
+``` r
+path <- tempfile(fileext = ".qmd")
+writeLines(c("# Heading", "", "Some text."), path)
+format_file(path, isolated = TRUE)
+unlink(path)
+```

@@ -37,6 +37,17 @@ panache::format_text(
 )
 ```
 
+Use `format_file(path)` to format a file in place. You must supply its
+path:
+
+``` r
+
+path <- tempfile(fileext = ".qmd")
+writeLines(c("# Heading", "", "Some text."), path)
+panache::format_file(path, isolated = TRUE)
+unlink(path)
+```
+
 Use named arguments for formatting settings and named lists for related
 sections such as external code formatters:
 
