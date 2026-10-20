@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 concurrency:
   group: update-panache-crates
@@ -53,6 +54,7 @@ jobs:
         run: task vendor
 
       - name: Create pull request
+        id: pull-request
         if: steps.update.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v8
         with:
@@ -72,3 +74,14 @@ jobs:
             src/rust/Cargo.toml
             src/rust/Cargo.lock
             src/rust/vendor.tar.xz
+
+      - name: Notify maintainer
+        if: steps.pull-request.outputs.pull-request-operation == 'created'
+        env:
+          # Use the bot identity so the PR author receives the mention.
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.pull-request.outputs.pull-request-number }}
+        run: |
+          gh pr comment "$PR_NUMBER" \
+            --body '@jolars, a Panache crate update is ready for review.'
