@@ -1,6 +1,6 @@
 Package: panache
 Title: Format Quarto and Other Markdown Flavors
-Version: 0.1.0
+Version: 0.1.1
 Authors@R:
     person(
       "Johan",
