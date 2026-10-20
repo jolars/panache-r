@@ -1,5 +1,12 @@
 # Changelog
 
+## panache 0.1.1
+
+### Bug fixes
+
+- use R’s temporary directory for scratch files
+  ([`16d209d`](https://github.com/jolars/panache-r/commit/16d209d8c2741c57339ce3f8dc41664eb5171078))
+
 ## panache 0.1.0
 
 - Added the initial Rust-backed formatter API and RStudio addins.
