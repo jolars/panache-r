@@ -28,7 +28,10 @@ tasks:
       - rm -rf src/rust/vendor src/rust/vendor.tar.xz
       - cargo generate-lockfile --manifest-path src/rust/Cargo.toml
       - cargo vendor --locked --manifest-path src/rust/Cargo.toml src/rust/vendor
-      - tar -cJ --no-xattrs -f src/rust/vendor.tar.xz -C src/rust vendor
+      # Use a single compression stream tuned for text to meet CRAN's 10 MB limit.
+      - >-
+        XZ_OPT="--threads=1 --lzma2=preset=9e,lc=4,pb=0"
+        tar -cJ --sort=name --no-xattrs -f src/rust/vendor.tar.xz -C src/rust vendor
       - rm -rf src/rust/vendor
 
   build:
