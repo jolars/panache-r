@@ -1,3 +1,9 @@
+# panache 0.1.2
+
+## Bug fixes
+
+- reduce size of tarball ([`e59e836`](https://github.com/jolars/panache-r/commit/e59e836499b35249c223f37b6d3f241beebd9627))
+
 # panache 0.1.1
 
 ## Bug fixes
