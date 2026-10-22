@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/jolars/panache-r/blob/v0.1.2/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/jolars/panache-r/blob/main/DESCRIPTION)
 
 Larsson J (2026). *panache: Format Quarto and Other Markdown Flavors*. R
 package version 0.1.2, <https://jolars.github.io/panache-r/>.
