@@ -18,6 +18,7 @@ Enter the Nix/devenv shell before development so the required R and Rust
 tools are available. Use the Task targets as the canonical workflows:
 
 - `task install` installs a clean local build of the package.
+- `task document` regenerates R wrappers, help pages, and `NAMESPACE`.
 - `task build` creates the R source tarball.
 - `task check` builds and runs `R CMD check --no-manual`.
 - `task test-rust` runs the Rust bridge’s unit tests.
