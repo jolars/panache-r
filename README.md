@@ -124,11 +124,6 @@ panache::format_text(
 )
 ```
 
-Earlier development versions accepted lists or `FALSE` as `config`. Move list
-settings to their named arguments and replace `config = FALSE` with
-`isolated = TRUE`. Named overrides retain project settings by default; use
-isolation when a call should depend only on its arguments and engine defaults.
-
 ## RStudio addins
 
 Choose **Format with Panache** or **Format Selection with Panache** from
