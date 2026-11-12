@@ -136,12 +136,6 @@ panache::format_text(
 )
 ```
 
-Earlier development versions accepted lists or `FALSE` as `config`. Move
-list settings to their named arguments and replace `config = FALSE` with
-`isolated = TRUE`. Named overrides retain project settings by default;
-use isolation when a call should depend only on its arguments and engine
-defaults.
-
 ## RStudio addins
 
 Choose **Format with Panache** or **Format Selection with Panache** from
@@ -176,3 +170,8 @@ command. Timed-out processes are terminated before formatting returns.
 Concurrency follows `external-max-parallel` in the configuration. During
 CRAN checks, a nonempty `_R_CHECK_LIMIT_CORES_` caps it at two
 processes. A positive `OMP_THREAD_LIMIT` also limits concurrency.
+
+## License
+
+MIT, see the [LICENSE](https://jolars.github.io/panache-r/LICENSE.md)
+file for details.
