@@ -155,3 +155,7 @@ terminated before formatting returns. Concurrency follows
 `external-max-parallel` in the configuration. During CRAN checks, a nonempty
 `_R_CHECK_LIMIT_CORES_` caps it at two processes. A positive `OMP_THREAD_LIMIT`
 also limits concurrency.
+
+## License
+
+MIT, see the [LICENSE](LICENSE.md) file for details.
