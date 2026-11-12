@@ -1,14 +1,9 @@
 # panache
 
 The **panache** R package formats Quarto and other Markdown flavors with
-Panache’s Rust formatting engine.
-
-The package is in early development. It currently provides an in-process
-R interface and RStudio addins for formatting a complete document or the
-selected block range.
-
-See the [package website](https://jolars.github.io/panache-r/) for the
-function reference.
+Panache’s Rust formatting engine. See the [package
+website](https://jolars.github.io/panache-r/) for the function
+reference.
 
 ## Installation
 
@@ -108,34 +103,6 @@ searches from the working directory unless you supply a document `path`.
 Discovery, user configuration, `PANACHE_CONFIG`, and `extend` follow the
 Panache CLI.
 
-The `config` argument selects a configuration file:
-
-- `NULL` (the default): discover configuration.
-- `"path/to/panache.toml"`: load that file, including any `extend`
-  chain.
-
-Set `isolated = TRUE` to ignore all configuration files, including an
-explicit `config` path. Named arguments and path-based flavor detection
-still apply.
-
-Named formatting arguments default to `NULL`, which inherits the
-configuration value or engine default. Explicit values override
-configuration. Grouped arguments merge supplied entries while preserving
-unspecified settings. Arrays replace inherited arrays, including empty
-formatter chains. As in TOML inheritance, `flavors` merges by path
-pattern, so assigning a pattern to another flavor replaces its old
-mapping. Empty grouped lists make no changes.
-
-``` r
-
-panache::format_text(
-  document,
-  config = "panache.toml",
-  line_width = 100,
-  extensions = list(smart = FALSE)
-)
-```
-
 ## RStudio addins
 
 Choose **Format with Panache** or **Format Selection with Panache** from
@@ -158,18 +125,6 @@ overrides:
 
 panache::format_document_addin(line_width = 100, formatters = list(r = "air"))
 ```
-
-## Formatting behavior
-
-Chunk options and ignore regions are preserved, and selection formatting
-affects only the selected blocks. A missing or failing external
-formatter leaves the chunk’s code intact. Invalid R code handled by the
-default arity R interface also produces an R warning. Inline code is not
-sent to formatters. External commands have a 30-second timeout per
-command. Timed-out processes are terminated before formatting returns.
-Concurrency follows `external-max-parallel` in the configuration. During
-CRAN checks, a nonempty `_R_CHECK_LIMIT_CORES_` caps it at two
-processes. A positive `OMP_THREAD_LIMIT` also limits concurrency.
 
 ## License
 
