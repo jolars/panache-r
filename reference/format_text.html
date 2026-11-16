@@ -83,7 +83,8 @@ preserved.</p>
 <span>  extensions <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  compat <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  flavors <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  isolated <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  isolated <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  smart_punctuation <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -213,6 +214,13 @@ mapping.</p></dd>
 <dd><p>Whether to ignore all configuration files, including an
 explicit <code>config</code> path. Named overrides and path-based flavor detection
 still apply. Defaults to <code>FALSE</code>.</p></dd>
+
+
+<dt id="arg-smart-punctuation">smart_punctuation<a class="anchor" aria-label="anchor" href="#arg-smart-punctuation"></a></dt>
+<dd><p>Source punctuation: <code>"preserve"</code>, <code>"ascii"</code>, or
+<code>"unicode"</code>. <code>NULL</code> uses the configuration value (<code>"preserve"</code> by default).
+ASCII normalization requires the <code>smart</code> extension for dashes and ellipses,
+and <code>smart</code> or <code>smart_quotes</code> for quotes.</p></dd>
 
 </dl></div>
     <div class="section level2">

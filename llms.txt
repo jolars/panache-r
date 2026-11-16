@@ -62,6 +62,11 @@ Formatting arguments correspond to settings under `[format]` in TOML.
 respective TOML sections. List option names accept underscores or
 hyphens.
 
+Punctuation is preserved by default. Set `smart_punctuation = "ascii"`
+to normalize curly quotes, dashes, and ellipses to ASCII when the
+corresponding smart extensions are enabled, or
+`smart_punctuation = "unicode"` to use Unicode punctuation.
+
 ## Configuration
 
 You can also use the same `panache.toml` configuration as the Panache

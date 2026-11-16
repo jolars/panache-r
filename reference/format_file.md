@@ -27,7 +27,8 @@ format_file(
   extensions = NULL,
   compat = NULL,
   flavors = NULL,
-  isolated = FALSE
+  isolated = FALSE,
+  smart_punctuation = NULL
 )
 ```
 
@@ -148,6 +149,13 @@ format_file(
   Whether to ignore all configuration files, including an explicit
   `config` path. Named overrides and path-based flavor detection still
   apply. Defaults to `FALSE`.
+
+- smart_punctuation:
+
+  Source punctuation: `"preserve"`, `"ascii"`, or `"unicode"`. `NULL`
+  uses the configuration value (`"preserve"` by default). ASCII
+  normalization requires the `smart` extension for dashes and ellipses,
+  and `smart` or `smart_quotes` for quotes.
 
 ## Value
 

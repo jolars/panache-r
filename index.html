@@ -84,6 +84,7 @@
 <span>  formatters <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>r <span class="op">=</span> <span class="st">"air"</span>, python <span class="op">=</span> <span class="st">"ruff"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Formatting arguments correspond to settings under <code>[format]</code> in TOML. <code>formatters</code>, <code>extensions</code>, <code>compat</code>, and <code>flavors</code> correspond to the respective TOML sections. List option names accept underscores or hyphens.</p>
+<p>Punctuation is preserved by default. Set <code>smart_punctuation = "ascii"</code> to normalize curly quotes, dashes, and ellipses to ASCII when the corresponding smart extensions are enabled, or <code>smart_punctuation = "unicode"</code> to use Unicode punctuation.</p>
 </div>
 <div class="section level2">
 <h2 id="configuration">Configuration<a class="anchor" aria-label="anchor" href="#configuration"></a>
