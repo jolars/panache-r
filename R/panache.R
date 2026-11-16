@@ -53,6 +53,10 @@
 #' @param tab_stops Tab handling: `"normalize"` or `"preserve"`.
 #' @param tab_width Positive tab width used when normalizing tabs.
 #' @param horizontal_rule_style Horizontal rules: `"line-width"` or `"compact"`.
+#' @param smart_punctuation Source punctuation: `"preserve"`, `"ascii"`, or
+#'   `"unicode"`. `NULL` uses the configuration value (`"preserve"` by default).
+#'   ASCII normalization requires the `smart` extension for dashes and ellipses,
+#'   and `smart` or `smart_quotes` for quotes.
 #' @param lang Fallback document language for sentence wrapping, such as `"en"`.
 #' @param no_break_abbreviations Character vector of additional abbreviations
 #'   for sentence wrapping, or a named list of vectors keyed by language, with
@@ -114,7 +118,8 @@ format_text <- function(
   extensions = NULL,
   compat = NULL,
   flavors = NULL,
-  isolated = FALSE
+  isolated = FALSE,
+  smart_punctuation = NULL
 ) {
   text <- utf8_character(text, "text")
   if (!is.null(flavor)) {
@@ -147,6 +152,7 @@ format_text <- function(
       tab_stops = tab_stops,
       tab_width = tab_width,
       horizontal_rule_style = horizontal_rule_style,
+      smart_punctuation = smart_punctuation,
       lang = lang,
       no_break_abbreviations = no_break_abbreviations
     )),
@@ -253,7 +259,8 @@ format_file <- function(
   extensions = NULL,
   compat = NULL,
   flavors = NULL,
-  isolated = FALSE
+  isolated = FALSE,
+  smart_punctuation = NULL
 ) {
   path <- path.expand(scalar_character(path, "path"))
   if (!file.exists(path)) {
@@ -278,6 +285,7 @@ format_file <- function(
     tab_stops = tab_stops,
     tab_width = tab_width,
     horizontal_rule_style = horizontal_rule_style,
+    smart_punctuation = smart_punctuation,
     lang = lang,
     no_break_abbreviations = no_break_abbreviations,
     formatters = formatters,

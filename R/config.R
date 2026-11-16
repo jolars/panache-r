@@ -31,7 +31,8 @@ normalize_format_options <- function(options) {
     math = c("reflow", "normalize", "verbatim"),
     math_delimiter_style = c("preserve", "dollars", "backslash"),
     tab_stops = c("normalize", "preserve"),
-    horizontal_rule_style = c("line-width", "compact")
+    horizontal_rule_style = c("line-width", "compact"),
+    smart_punctuation = c("preserve", "ascii", "unicode")
   )
   for (name in intersect(names(options), names(choices))) {
     value <- scalar_character(options[[name]], name)

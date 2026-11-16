@@ -415,6 +415,9 @@ pub fn formatter_config(config: &panache_engine::config::Config) -> panache_form
         wrap,
         blank_lines,
         horizontal_rule_style,
+        smart_punctuation: config
+            .smart_punctuation
+            .unwrap_or_else(|| panache_formatter::SmartPunctuation::for_flavor(config.flavor)),
         lang: config.lang.clone(),
         no_break_abbreviations,
         formatters,

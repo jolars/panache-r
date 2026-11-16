@@ -275,7 +275,7 @@ mod tests {
 
 #[extendr]
 fn rust_engine_version() -> &'static str {
-    "0.26.1"
+    "0.29.0"
 }
 
 extendr_module! {
