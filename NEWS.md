@@ -1,3 +1,9 @@
+# panache 0.2.0
+
+## Features
+
+- **deps:** update Panache crates (#6) ([`1841789`](https://github.com/jolars/panache-r/commit/18417892ba8b71557f1241ca03293dffb1cfaa2d)), ref [#6](https://github.com/jolars/panache-r/issues/6)
+
 # panache 0.1.2
 
 ## Bug fixes
