@@ -26,7 +26,8 @@ format_file(
   extensions = NULL,
   compat = NULL,
   flavors = NULL,
-  isolated = FALSE
+  isolated = FALSE,
+  smart_punctuation = NULL
 )
 }
 \arguments{
@@ -102,6 +103,11 @@ mapping.}
 \item{isolated}{Whether to ignore all configuration files, including an
 explicit \code{config} path. Named overrides and path-based flavor detection
 still apply. Defaults to \code{FALSE}.}
+
+\item{smart_punctuation}{Source punctuation: \code{"preserve"}, \code{"ascii"}, or
+\code{"unicode"}. \code{NULL} uses the configuration value (\code{"preserve"} by default).
+ASCII normalization requires the \code{smart} extension for dashes and ellipses,
+and \code{smart} or \code{smart_quotes} for quotes.}
 }
 \value{
 Invisibly, \code{TRUE} if the file changed and \code{FALSE} otherwise.
