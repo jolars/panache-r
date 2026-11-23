@@ -53,7 +53,7 @@ format_text(
   The Markdown flavor, or `NULL` to use configuration and path detection
   (falling back to `"pandoc"`). One of `"pandoc"`, `"quarto"`,
   `"rmarkdown"`, `"gfm"`, `"commonmark"`, `"multimarkdown"`, `"mdsvex"`,
-  or `"myst"`.
+  `"myst"`, or `"jupyter"`.
 
 - line_width:
 
@@ -80,9 +80,9 @@ format_text(
 
 - path:
 
-  Optional document path used to detect the flavor and discover
-  configuration. If `NULL`, discovery starts in the working directory.
-  The file is not read.
+  Optional document path used to detect the file type and flavor and
+  discover configuration. If `NULL`, discovery starts in the working
+  directory. The file is not read.
 
 - line_ending:
 
@@ -197,6 +197,12 @@ arguments merge supplied entries, preserving unspecified settings;
 arrays replace inherited arrays, except for the pattern-based `flavors`
 merge. Empty grouped lists make no changes. List option names accept
 underscores or hyphens.
+
+With an `.ipynb` path, `text` is a Jupyter notebook (nbformat 4).
+Panache formats its Markdown cells and preserves the rest of the
+notebook. Notebook formatting does not support `range` and skips R and
+external code formatters. To format a Markdown cell directly, pass its
+source as `text` with `flavor = "jupyter"` and omit the notebook path.
 
 ## Examples
 
