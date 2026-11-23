@@ -17,9 +17,9 @@ bench = false
 [dependencies]
 extendr-api = { version = "0.9", features = ["result_condition"] }
 globset = "0.4"
-panache-engine = { package = "panache", version = "=3.18.0", default-features = false }
-panache-formatter = "=0.29.0"
-panache-parser = "0.35.0"
+panache-engine = { package = "panache", version = "=3.19.0", default-features = false }
+panache-formatter = "=0.30.0"
+panache-parser = "0.36.0"
 rayon = "1.12"
 tempfile = "3.27"
 toml = "1.1"
