@@ -33,6 +33,14 @@ impl ExternalFormatters {
         crate::config::formatter_config(&self.config)
     }
 
+    pub fn format_notebook(&self, text: &str) -> Result<String, String> {
+        let mut config = self.config.clone();
+        // The engine's notebook API runs its own external formatters, outside
+        // the timeout and concurrency limits enforced by this package.
+        config.formatters.clear();
+        panache_engine::notebook::format_notebook(text, &config).map_err(|error| error.to_string())
+    }
+
     pub fn parser_options(&self) -> panache_parser::ParserOptions {
         self.config.parser_options()
     }

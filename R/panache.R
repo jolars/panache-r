@@ -23,8 +23,8 @@
 #'   with a declared encoding are converted to UTF-8.
 #' @param flavor The Markdown flavor, or `NULL` to use configuration and path
 #'   detection (falling back to `"pandoc"`). One of `"pandoc"`, `"quarto"`,
-#'   `"rmarkdown"`, `"gfm"`, `"commonmark"`, `"multimarkdown"`, `"mdsvex"`, or
-#'   `"myst"`.
+#'   `"rmarkdown"`, `"gfm"`, `"commonmark"`, `"multimarkdown"`, `"mdsvex"`,
+#'   `"myst"`, or `"jupyter"`.
 #' @param line_width A positive integer giving the target line width, or `NULL`
 #'   to use the configuration value (80 by default).
 #' @param wrap The wrapping strategy. One of `"reflow"`, `"sentence"`,
@@ -85,9 +85,15 @@
 #' inherited arrays, except for the pattern-based `flavors` merge. Empty grouped
 #' lists make no changes. List option names accept underscores or hyphens.
 #'
-#' @param path Optional document path used to detect the flavor and discover
-#'   configuration. If `NULL`, discovery starts in the working directory. The
-#'   file is not read.
+#' With an `.ipynb` path, `text` is a Jupyter notebook (nbformat 4).
+#' Panache formats its Markdown cells and preserves the rest of the notebook.
+#' Notebook formatting does not support `range` and skips R and external code
+#' formatters. To format a Markdown cell directly, pass its source as `text`
+#' with `flavor = "jupyter"` and omit the notebook path.
+#'
+#' @param path Optional document path used to detect the file type and flavor
+#'   and discover configuration. If `NULL`, discovery starts in the working
+#'   directory. The file is not read.
 #'
 #' @return A character scalar containing the formatted document.
 #' @export
@@ -133,7 +139,8 @@ format_text <- function(
         "commonmark",
         "multimarkdown",
         "mdsvex",
-        "myst"
+        "myst",
+        "jupyter"
       )
     )
   }
@@ -224,8 +231,9 @@ format_text <- function(
 #' Format a file with Panache
 #'
 #' The file is replaced only when formatting changes its contents.
+#' Supports UTF-8 Quarto, Markdown, and Jupyter notebook files.
 #'
-#' @param path Path to a UTF-8 Quarto or other Markdown document.
+#' @param path Path to the document or notebook.
 #' @inheritParams format_text
 #' @inherit format_text details
 #'

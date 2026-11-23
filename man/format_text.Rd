@@ -37,8 +37,8 @@ with a declared encoding are converted to UTF-8.}
 
 \item{flavor}{The Markdown flavor, or \code{NULL} to use configuration and path
 detection (falling back to \code{"pandoc"}). One of \code{"pandoc"}, \code{"quarto"},
-\code{"rmarkdown"}, \code{"gfm"}, \code{"commonmark"}, \code{"multimarkdown"}, \code{"mdsvex"}, or
-\code{"myst"}.}
+\code{"rmarkdown"}, \code{"gfm"}, \code{"commonmark"}, \code{"multimarkdown"}, \code{"mdsvex"},
+\code{"myst"}, or \code{"jupyter"}.}
 
 \item{line_width}{A positive integer giving the target line width, or \code{NULL}
 to use the configuration value (80 by default).}
@@ -55,9 +55,9 @@ to discover configuration. Discovery uses the nearest project file, then
 \code{PANACHE_CONFIG}, then the user configuration. Files can inherit settings
 through \code{extend}. Lists and logical values are not accepted.}
 
-\item{path}{Optional document path used to detect the flavor and discover
-configuration. If \code{NULL}, discovery starts in the working directory. The
-file is not read.}
+\item{path}{Optional document path used to detect the file type and flavor
+and discover configuration. If \code{NULL}, discovery starts in the working
+directory. The file is not read.}
 
 \item{line_ending}{Output line endings: \code{"auto"}, \code{"lf"}, or \code{"crlf"}.
 \code{"auto"} preserves the first source line ending's style.}
@@ -145,6 +145,12 @@ default. Explicit arguments override configuration values. Grouped arguments
 merge supplied entries, preserving unspecified settings; arrays replace
 inherited arrays, except for the pattern-based \code{flavors} merge. Empty grouped
 lists make no changes. List option names accept underscores or hyphens.
+
+With an \code{.ipynb} path, \code{text} is a Jupyter notebook (nbformat 4).
+Panache formats its Markdown cells and preserves the rest of the notebook.
+Notebook formatting does not support \code{range} and skips R and external code
+formatters. To format a Markdown cell directly, pass its source as \code{text}
+with \code{flavor = "jupyter"} and omit the notebook path.
 }
 \examples{
 format_text("# Heading\n\nSome text.\n", flavor = "quarto", isolated = TRUE)

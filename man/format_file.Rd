@@ -31,12 +31,12 @@ format_file(
 )
 }
 \arguments{
-\item{path}{Path to a UTF-8 Quarto or other Markdown document.}
+\item{path}{Path to the document or notebook.}
 
 \item{flavor}{The Markdown flavor, or \code{NULL} to use configuration and path
 detection (falling back to \code{"pandoc"}). One of \code{"pandoc"}, \code{"quarto"},
-\code{"rmarkdown"}, \code{"gfm"}, \code{"commonmark"}, \code{"multimarkdown"}, \code{"mdsvex"}, or
-\code{"myst"}.}
+\code{"rmarkdown"}, \code{"gfm"}, \code{"commonmark"}, \code{"multimarkdown"}, \code{"mdsvex"},
+\code{"myst"}, or \code{"jupyter"}.}
 
 \item{line_width}{A positive integer giving the target line width, or \code{NULL}
 to use the configuration value (80 by default).}
@@ -114,6 +114,7 @@ Invisibly, \code{TRUE} if the file changed and \code{FALSE} otherwise.
 }
 \description{
 The file is replaced only when formatting changes its contents.
+Supports UTF-8 Quarto, Markdown, and Jupyter notebook files.
 }
 \details{
 Use \code{formatters = list(r = "arity")} to select the arity CLI, replace
@@ -132,6 +133,12 @@ default. Explicit arguments override configuration values. Grouped arguments
 merge supplied entries, preserving unspecified settings; arrays replace
 inherited arrays, except for the pattern-based \code{flavors} merge. Empty grouped
 lists make no changes. List option names accept underscores or hyphens.
+
+With an \code{.ipynb} path, \code{text} is a Jupyter notebook (nbformat 4).
+Panache formats its Markdown cells and preserves the rest of the notebook.
+Notebook formatting does not support \code{range} and skips R and external code
+formatters. To format a Markdown cell directly, pass its source as \code{text}
+with \code{flavor = "jupyter"} and omit the notebook path.
 }
 \examples{
 path <- tempfile(fileext = ".qmd")

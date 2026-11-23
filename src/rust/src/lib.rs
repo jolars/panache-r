@@ -19,6 +19,7 @@ fn parse_flavor(value: &str) -> extendr_api::Result<Flavor> {
         "multimarkdown" => Ok(Flavor::MultiMarkdown),
         "mdsvex" => Ok(Flavor::Mdsvex),
         "myst" => Ok(Flavor::Myst),
+        "jupyter" => Ok(Flavor::Jupyter),
         other => Err(format!("unknown Markdown flavor `{other}`").into()),
     }
 }
@@ -41,9 +42,10 @@ fn rust_format_document(
         .into_option()
         .map(|flavor| parse_flavor(&flavor))
         .transpose()?;
+    let document_path = document_path.into_option();
     let external = external::ExternalFormatters::load(
         config_path.into_option().as_deref(),
-        document_path.into_option().as_deref(),
+        document_path.as_deref(),
         flavor,
         isolated,
         crate::config::list_to_table(&overrides).map_err(extendr_api::Error::from)?,
@@ -68,6 +70,19 @@ fn rust_format_document(
         (Nullable::Null, Nullable::Null) => None,
         _ => return Err("range start and end must both be present or absent".into()),
     };
+
+    if document_path
+        .as_deref()
+        .map(std::path::Path::new)
+        .is_some_and(panache_engine::notebook::is_notebook_path)
+    {
+        if line_range.is_some() {
+            return Err("line ranges are not supported for Jupyter notebooks".into());
+        }
+        return external
+            .format_notebook(text)
+            .map_err(extendr_api::Error::from);
+    }
 
     let tree = panache_parser::parse(text, Some(external.parser_options()));
     let byte_range = line_range
